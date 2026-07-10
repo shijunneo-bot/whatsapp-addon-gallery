@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#075e54">
+<title>WhatsApp Add-on Gallery</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='24' fill='%23e9182b'/><mask id='m'><rect width='100' height='100' fill='%23000'/><circle cx='45' cy='51' r='30' fill='%23fff'/><circle cx='62' cy='44' r='27' fill='%23000'/></mask><rect width='100' height='100' fill='%23fff' mask='url(%23m)'/></svg>">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='24' fill='%23e9182b'/><mask id='m'><rect width='100' height='100' fill='%23000'/><circle cx='45' cy='51' r='30' fill='%23fff'/><circle cx='62' cy='44' r='27' fill='%23000'/></mask><rect width='100' height='100' fill='%23fff' mask='url(%23m)'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0b141a; --panel:#111b21; --panel-2:#182229; --line:#2a3942;
+    --text:#e9edef; --muted:#8696a0; --faint:#54656f;
+    --wa:#25d366; --wa-deep:#128c7e; --wa-dark:#075e54;
+    --chat-bg:#efeae2; --sent:#d9fdd3; --recv:#ffffff; --chat-ink:#111b21;
+    --cat-mkt:#f2a541; --cat-util:#4a9fe0; --cat-auth:#a06cd5; --cat-svc:#25d366;
+    --amber:#f2a541;
+    --display:"Bricolage Grotesque",sans-serif;
+    --body:"Public Sans",sans-serif;
+    --phone-font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--ink);color:var(--text);font-family:var(--body);line-height:1.55;
+    background-image:radial-gradient(circle at 15% 0%,rgba(18,140,126,.14),transparent 45%),radial-gradient(circle at 90% 10%,rgba(37,211,102,.08),transparent 40%);}
+  a{color:var(--wa)}
+  ::selection{background:var(--wa);color:var(--ink)}
+
+  /* header */
+  header{padding:38px 26px 22px;border-bottom:1px solid var(--line);position:relative;overflow:hidden}
+  .kicker{font-size:12px;letter-spacing:.28em;text-transform:uppercase;color:var(--wa);font-weight:600;margin-bottom:12px}
+  h1{font-family:var(--display);font-weight:800;font-size:clamp(30px,5vw,52px);line-height:1.02;letter-spacing:-.02em}
+  h1 span{color:var(--wa-deep);-webkit-text-stroke:0}
+  .sub{color:var(--muted);max-width:720px;margin-top:14px;font-size:15px}
+  .metabar{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+  .chip{font-size:12px;padding:5px 11px;border:1px solid var(--line);border-radius:999px;color:var(--muted);background:var(--panel)}
+  .chip b{color:var(--text);font-weight:600}
+
+  /* tabs */
+  nav.tabs{position:sticky;top:0;z-index:40;background:rgba(11,20,26,.9);backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);display:flex;gap:4px;padding:0 18px;overflow-x:auto}
+  nav.tabs button{background:none;border:none;color:var(--muted);font-family:var(--body);font-weight:600;
+    font-size:14px;padding:16px 14px;cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;transition:.15s}
+  nav.tabs button:hover{color:var(--text)}
+  nav.tabs button.active{color:var(--wa);border-bottom-color:var(--wa)}
+
+  main{padding:26px;max-width:1240px;margin:0 auto}
+  .tabpane{display:none;animation:fade .25s ease}
+  .tabpane.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  /* library layout */
+  .lib{display:grid;grid-template-columns:230px 1fr;gap:22px;align-items:start}
+  @media(max-width:820px){.lib{grid-template-columns:1fr}}
+  .filters{position:sticky;top:70px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}
+  .filters h3{font-family:var(--display);font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+  .fgroup{margin-bottom:16px}
+  .fgroup .lbl{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin-bottom:7px;font-weight:600}
+  .opt{display:block;width:100%;text-align:left;background:none;border:1px solid transparent;color:var(--muted);
+    font-family:var(--body);font-size:13px;padding:6px 9px;border-radius:8px;cursor:pointer;transition:.12s;margin-bottom:2px}
+  .opt:hover{background:var(--panel-2);color:var(--text)}
+  .opt.active{background:var(--wa-dark);color:#fff;border-color:var(--wa-deep)}
+  .count{color:var(--faint);font-size:11px;margin-left:4px}
+  .fdot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:8px;vertical-align:middle;flex-shrink:0}
+  .clearbtn{font-size:12px;color:var(--wa);background:none;border:none;cursor:pointer;padding:4px 0;font-family:var(--body)}
+
+  .searchwrap{margin-bottom:14px}
+  .searchwrap input{width:100%;background:var(--panel);border:1px solid var(--line);color:var(--text);
+    font-family:var(--body);font-size:14px;padding:11px 14px;border-radius:10px;outline:none}
+  .searchwrap input:focus{border-color:var(--wa-deep)}
+  .resultcount{color:var(--muted);font-size:13px}
+  .resultbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+  .viewtoggle{display:flex;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:3px}
+  .viewtoggle button{background:none;border:none;color:var(--muted);font-family:var(--body);font-weight:600;font-size:12.5px;padding:6px 14px;border-radius:7px;cursor:pointer;transition:.14s}
+  .viewtoggle button:hover{color:var(--text)}
+  .viewtoggle button.active{background:var(--wa-dark);color:#fff}
+  .vsection{margin-bottom:30px}
+  .vhead{display:flex;align-items:center;gap:12px;padding:11px 14px;margin-bottom:14px;border-radius:12px;
+    background:linear-gradient(90deg,color-mix(in srgb,var(--vc) 24%,var(--panel)),var(--panel));
+    border:1px solid color-mix(in srgb,var(--vc) 30%,var(--line));border-left:4px solid var(--vc);position:sticky;top:53px;z-index:20;
+    box-shadow:0 6px 16px -10px rgba(0,0,0,.7)}
+  .vhead-em{font-size:22px;width:40px;height:40px;flex-shrink:0;display:grid;place-items:center;border-radius:11px;
+    background:color-mix(in srgb,var(--vc) 26%,transparent);border:1px solid color-mix(in srgb,var(--vc) 40%,transparent);line-height:1}
+  .vhead-name{font-family:var(--display);font-size:19px;font-weight:700;letter-spacing:-.01em;color:var(--text)}
+  .vhead-count{margin-left:auto;font-size:12px;font-weight:700;color:var(--vc);background:color-mix(in srgb,var(--vc) 15%,transparent);
+    padding:5px 11px;border-radius:999px;white-space:nowrap}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(272px,1fr));gap:14px}
+  .card{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--vc,#2a3942);border-radius:14px;padding:14px 15px 13px;cursor:pointer;
+    transition:transform .16s,box-shadow .16s,border-color .16s;position:relative;display:flex;flex-direction:column;gap:8px;overflow:hidden}
+  .card::after{content:"";position:absolute;top:0;right:0;width:80px;height:80px;background:radial-gradient(circle at top right,var(--vc,transparent),transparent 70%);opacity:.10;pointer-events:none}
+  .card:hover{transform:translateY(-3px);box-shadow:0 14px 34px -14px rgba(0,0,0,.7);border-color:var(--vc,var(--wa-deep));border-left-color:var(--vc)}
+  .card:hover::after{opacity:.18}
+  .cardhead{display:flex;align-items:center;gap:10px}
+  .em{font-size:20px;width:38px;height:38px;flex-shrink:0;display:grid;place-items:center;border-radius:11px;
+    background:color-mix(in srgb,var(--vc,#54656f) 20%,transparent);border:1px solid color-mix(in srgb,var(--vc,#54656f) 32%,transparent);line-height:1}
+  .card .vt{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--vc,var(--wa));font-weight:700}
+  .card h4{font-family:var(--display);font-size:15.5px;font-weight:600;line-height:1.16;letter-spacing:-.01em;margin-top:1px}
+  .card .goal{font-size:12.5px;color:var(--muted);line-height:1.4}
+  .card .tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:auto;padding-top:5px}
+  .tag{font-size:10.5px;padding:3px 8px;border-radius:999px;font-weight:600;letter-spacing:.02em}
+  .tag.cat-Marketing{background:rgba(242,165,65,.16);color:var(--cat-mkt)}
+  .tag.cat-Utility{background:rgba(74,159,224,.16);color:var(--cat-util)}
+  .tag.cat-Authentication{background:rgba(160,108,213,.16);color:var(--cat-auth)}
+  .tag.cat-Service{background:rgba(37,211,102,.16);color:var(--cat-svc)}
+  .tag.cad{background:var(--panel-2);color:var(--muted)}
+  .tag.cad.journeytag{background:color-mix(in srgb,var(--vc,#54656f) 20%,transparent);color:var(--vc)}
+  .tag.free{background:rgba(37,211,102,.14);color:var(--wa)}
+  .tag.unsupported{background:rgba(240,90,90,.16);color:#f0605a}
+  .tag.deliver-yes{background:rgba(37,211,102,.16);color:var(--wa);font-weight:700}
+  .tag.deliver-caveat{background:rgba(242,165,65,.18);color:var(--amber);font-weight:700}
+  .tag.deliver-no{background:rgba(240,90,90,.18);color:#f0605a;font-weight:700}
+  .block.caveat{background:rgba(242,165,65,.08);border-left:3px solid var(--amber);padding:12px 14px;border-radius:0 10px 10px 0;margin-bottom:17px}
+  .block.caveat .h{color:var(--amber)}
+  .block.ready{background:rgba(37,211,102,.07);border-left:3px solid var(--wa);padding:10px 14px;border-radius:0 10px 10px 0;margin-bottom:17px}
+  .block.ready .h{color:var(--wa)}
+  .card.blocked::before{content:"";position:absolute;inset:0;border-radius:14px;border:1px solid rgba(240,90,90,.35);pointer-events:none;z-index:1}
+  .block.warn{background:rgba(240,90,90,.08);border-left:3px solid #f0605a;padding:12px 14px;border-radius:0 10px 10px 0;margin-bottom:17px}
+  .block.warn .h{color:#f0605a}
+  .callout.block-red{border-left-color:#f0605a}
+  .callout.block-red .h{color:#f0605a}
+  .brandmark{position:absolute;top:13px;right:13px;font-size:10px;color:var(--faint);font-weight:600;letter-spacing:.04em}
+
+  /* detail modal */
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(4px);z-index:80;display:none;
+    align-items:flex-start;justify-content:center;padding:30px 16px;overflow-y:auto}
+  .overlay.open{display:flex}
+  .modal{background:var(--panel);border:1px solid var(--line);border-radius:18px;max-width:960px;width:100%;
+    display:grid;grid-template-columns:1.15fr .85fr;overflow:hidden;animation:pop .25s ease}
+  @keyframes pop{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:none}}
+  @media(max-width:760px){.modal{grid-template-columns:1fr}}
+  .mleft{padding:26px 26px 30px;max-height:88vh;overflow-y:auto}
+  .mleft .vt{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--wa);font-weight:600;margin-bottom:8px}
+  .mleft h2{font-family:var(--display);font-size:26px;font-weight:700;line-height:1.08;letter-spacing:-.02em;margin-bottom:6px}
+  .mleft .exline{color:var(--faint);font-size:13px;margin-bottom:18px}
+  .block{margin-bottom:17px}
+  .block .h{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--wa-deep);font-weight:700;margin-bottom:5px}
+  .block p{font-size:14px;color:var(--text);line-height:1.5}
+  .block.trigger{background:var(--panel-2);border-left:3px solid var(--amber);padding:12px 14px;border-radius:0 10px 10px 0}
+  .block.trigger .h{color:var(--amber)}
+  .mtags{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:18px}
+  .close{position:absolute;top:18px;right:20px;background:var(--panel-2);border:1px solid var(--line);color:var(--text);
+    width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:17px;z-index:2}
+  .journeysteps{list-style:none;counter-reset:s}
+  .journeysteps li{counter-increment:s;position:relative;padding:8px 0 8px 34px;font-size:13.5px;color:var(--text);border-bottom:1px dashed var(--line)}
+  .journeysteps li:last-child{border-bottom:none}
+  .journeysteps li::before{content:counter(s);position:absolute;left:0;top:8px;width:22px;height:22px;background:var(--wa-dark);
+    color:#fff;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:700}
+  .journeysteps li b{color:var(--wa)}
+  /* CleverTap config section */
+  .ctcfg{background:var(--panel-2);border:1px solid var(--line);border-left:3px solid var(--wa);border-radius:0 12px 12px 0;padding:14px 15px}
+  .ctcfg .h{color:var(--wa)}
+  .ctsub{font-size:12px;color:var(--muted);margin:2px 0 12px;line-height:1.45}
+  .ctrow{display:flex;justify-content:space-between;gap:14px;padding:7px 0;border-bottom:1px dashed var(--line);flex-wrap:wrap}
+  .ctrow:last-of-type{border-bottom:none}
+  .ctk{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--faint);font-weight:700;flex-shrink:0;min-width:148px}
+  .ctv{font-size:13px;color:var(--text);text-align:right;margin-left:auto;line-height:1.4}
+  .ctv code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;background:rgba(37,211,102,.14);color:var(--wa);padding:1px 5px;border-radius:5px;font-size:12px}
+  .sug{display:inline-block;font-size:9.5px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;color:#04231d;background:var(--amber);padding:1px 6px;border-radius:999px;vertical-align:middle;margin-left:5px}
+  .btype{font-size:9.5px;font-weight:700;text-transform:uppercase;color:var(--wa-deep);background:rgba(18,140,126,.16);padding:1px 5px;border-radius:4px;margin-left:3px}
+  .btype.qr{color:var(--faint);background:rgba(134,150,160,.16)}
+  .ctqnote{font-size:12px;color:var(--muted);margin-top:11px;line-height:1.5}
+  .ctqnote b{color:var(--text)}
+  .ctnote{font-size:12px;color:var(--muted);margin-top:9px;line-height:1.5;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:9px 11px}
+  .ctnote b{color:var(--wa)}
+  @media(max-width:760px){.ctv{text-align:left;margin-left:0}.ctk{min-width:0}}
+
+  /* phone mockup */
+  .mright{background:linear-gradient(160deg,#0b3d36,#075e54);padding:24px 20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+  .copybar{display:flex;gap:8px;width:100%;max-width:300px}
+  .copybtn{flex:1;background:#fff;color:var(--wa-dark);border:1px solid rgba(255,255,255,.35);font-family:var(--body);font-weight:600;font-size:12.5px;padding:9px 10px;border-radius:9px;cursor:pointer;transition:transform .14s,box-shadow .14s,background .14s;display:flex;align-items:center;justify-content:center;gap:7px;white-space:nowrap}
+  .copybtn:hover{transform:translateY(-1px);box-shadow:0 8px 18px -10px rgba(0,0,0,.6)}
+  .copybtn.ghost{background:rgba(255,255,255,.10);color:#fff}
+  .copybtn.ghost:hover{background:rgba(255,255,255,.18)}
+  .copybtn.done{background:var(--wa);color:#04231d;border-color:var(--wa)}
+  .copybtn .cpi{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;flex-shrink:0}
+  .copyhint{width:100%;max-width:300px;text-align:center;font-size:10.5px;color:rgba(255,255,255,.6);line-height:1.4;margin-top:-6px}
+  .phone{width:100%;max-width:300px;background:var(--chat-bg);border-radius:26px;overflow:hidden;
+    box-shadow:0 22px 60px -18px rgba(0,0,0,.7);font-family:var(--phone-font)}
+  .wa-top{background:var(--wa-dark);color:#fff;padding:11px 14px;display:flex;align-items:center;gap:10px}
+  .wa-back{font-size:18px;opacity:.9}
+  .wa-av{width:34px;height:34px;border-radius:50%;background:var(--wa-deep);display:grid;place-items:center;font-weight:700;font-size:14px;color:#fff;flex-shrink:0}
+  .wa-name{font-size:14px;font-weight:600;line-height:1.1}
+  .wa-status{font-size:10.5px;opacity:.75}
+  .wa-body{padding:16px 12px 20px;min-height:230px;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Cg fill='%23d9d0c4' fill-opacity='0.4'%3E%3Ccircle cx='10' cy='10' r='1.2'/%3E%3Ccircle cx='40' cy='30' r='1.2'/%3E%3Ccircle cx='20' cy='48' r='1.2'/%3E%3C/g%3E%3C/svg%3E");
+    background-color:var(--chat-bg)}
+  .bubble{background:var(--recv);color:var(--chat-ink);border-radius:9px;padding:8px 10px 18px;font-size:13.5px;line-height:1.42;
+    box-shadow:0 1px 1px rgba(0,0,0,.12);position:relative;max-width:92%;margin-bottom:4px}
+  .bubble.biz::after{content:"";position:absolute;top:0;left:-7px;border:7px solid transparent;border-top-color:var(--recv);border-right-color:var(--recv)}
+  .bhead{font-weight:600;margin-bottom:4px;color:var(--wa-dark);font-size:13px}
+  .bimg{background:linear-gradient(135deg,#c9d6cf,#a7c0b6);border-radius:6px;height:80px;margin:-2px 0 8px;display:grid;place-items:center;color:#5a6b64;font-size:11px;font-weight:600;letter-spacing:.05em}
+  .bmeta{position:absolute;right:9px;bottom:6px;font-size:10px;color:#667781}
+  .bfoot{font-size:11px;color:#8696a0;margin-top:5px}
+  .wa-btns{margin-top:6px;display:flex;flex-direction:column;gap:4px}
+  .wa-btn{background:var(--recv);color:#0a91da;border-radius:8px;text-align:center;padding:9px;font-size:13px;font-weight:500;box-shadow:0 1px 1px rgba(0,0,0,.1);display:flex;align-items:center;justify-content:center;gap:6px}
+  .wa-btn svg{width:14px;height:14px;fill:#0a91da}
+  .userbub{background:var(--sent);margin-left:auto;border-radius:9px;padding:7px 10px 16px;font-size:13px;max-width:80%;position:relative;box-shadow:0 1px 1px rgba(0,0,0,.12)}
+  .userbub .bmeta{color:#5a7d52}
+  .ltobadge{display:inline-block;background:#fff3cd;color:#8a6d1a;font-size:10px;font-weight:700;padding:2px 7px;border-radius:5px;margin-bottom:6px}
+
+  /* reference panes */
+  .doc{max-width:900px}
+  .doc h2{font-family:var(--display);font-size:26px;font-weight:700;letter-spacing:-.02em;margin:6px 0 6px}
+  .doc h3{font-family:var(--display);font-size:18px;font-weight:600;margin:26px 0 8px;color:var(--wa)}
+  .doc p{color:var(--text);font-size:15px;margin-bottom:12px}
+  .doc .lead{color:var(--muted);font-size:16px;margin-bottom:20px}
+  .doc ul{margin:0 0 14px 20px;color:var(--text);font-size:14.5px}
+  .doc li{margin-bottom:7px}
+  table.ref{width:100%;border-collapse:collapse;margin:12px 0 20px;font-size:13.5px}
+  table.ref th,table.ref td{border:1px solid var(--line);padding:10px 12px;text-align:left;vertical-align:top}
+  table.ref th{background:var(--panel-2);color:var(--wa);font-weight:600;font-family:var(--display);font-size:13px}
+  table.ref td{color:var(--text)}
+  .callout{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--amber);border-radius:0 12px 12px 0;padding:14px 16px;margin:16px 0}
+  .callout .h{color:var(--amber);font-weight:700;font-size:12px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px}
+  .callout p{font-size:14px;margin:0}
+  .flag{background:rgba(160,108,213,.1);border-left-color:var(--cat-auth)}
+  .flag .h{color:var(--cat-auth)}
+  .legend{display:flex;flex-wrap:wrap;gap:14px;margin:10px 0 22px;font-size:12.5px;color:var(--muted)}
+  .legend span{display:flex;align-items:center;gap:6px}
+  .dot{width:10px;height:10px;border-radius:50%}
+  .howcard{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin-bottom:14px}
+  .howcard h3{margin-top:0}
+  footer{border-top:1px solid var(--line);padding:26px;color:var(--faint);font-size:12.5px;text-align:center;margin-top:30px}
+  /* ============ RESPONSIVE ============ */
+  html,body{overflow-x:hidden;max-width:100%}
+  *{-webkit-tap-highlight-color:transparent}
+  .filter-toggle{display:none;align-items:center;gap:6px;background:var(--panel);border:1px solid var(--line);
+    color:var(--text);font-family:var(--body);font-weight:600;font-size:13px;padding:8px 14px;border-radius:10px;cursor:pointer}
+  .filter-toggle.active{background:var(--wa-dark);color:#fff;border-color:var(--wa-deep)}
+
+  @media (max-width: 900px){
+    .vhead{top:49px}
+  }
+  @media (max-width: 820px){
+    header{padding:26px 18px 16px}
+    main{padding:16px}
+    nav.tabs{padding:0 8px}
+    nav.tabs button{padding:14px 11px;font-size:13px}
+    .lib{grid-template-columns:1fr;gap:0}
+    .filter-toggle{display:inline-flex}
+    .filters{display:none;position:static;top:auto;margin-bottom:16px}
+    .filters.open{display:block;max-height:66vh;overflow-y:auto;animation:fade .2s ease}
+    .opt{padding:9px 10px;font-size:13.5px}
+    .searchwrap input{font-size:16px}
+    .vhead{top:45px}
+    .vhead-name{font-size:17px}
+    .resultbar{gap:10px}
+  }
+  @media (max-width: 760px){
+    /* modal: single column, phone first, whole sheet scrolls */
+    .modal{grid-template-columns:1fr}
+    .mleft{max-height:none;overflow:visible}
+    .mright{order:-1}
+  }
+  @media (max-width: 560px){
+    header{padding:22px 16px 14px}
+    .kicker{font-size:11px;letter-spacing:.2em}
+    .metabar{gap:8px}
+    .chip{font-size:11px;padding:4px 9px}
+    main{padding:13px}
+    .grid{grid-template-columns:1fr;gap:12px}
+    .card{padding:13px 14px 12px}
+    .em{width:36px;height:36px;font-size:19px}
+    .vsection{margin-bottom:24px}
+    .vhead{padding:10px 12px;gap:10px;top:45px}
+    .vhead-em{width:36px;height:36px;font-size:20px}
+    .vhead-name{font-size:16px}
+    .vhead-count{font-size:11px;padding:4px 9px}
+    .doc h2{font-size:22px}
+    .doc h3{font-size:16px}
+    table.ref{font-size:12.5px}
+    table.ref th,table.ref td{padding:8px 9px}
+    /* full-screen detail sheet on phones */
+    .overlay{padding:0;align-items:stretch}
+    .modal{border-radius:0;max-width:100%;min-height:100vh;min-height:100dvh}
+    .mleft{padding:20px 16px 26px}
+    .mleft h2{font-size:21px}
+    .mright{padding:22px 16px}
+    .close{top:12px;right:12px;width:36px;height:36px;background:rgba(11,20,26,.85)}
+  }
+  @media (max-width: 380px){
+    h1{font-size:26px}
+    .viewtoggle button{padding:6px 11px;font-size:12px}
+    .phone{max-width:270px}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="kicker">WhatsApp Business Messaging · Use-Case Library</div>
+  <h1>The WhatsApp <span>Add-on Gallery</span></h1>
+  <p class="sub">A pattern library for the CleverTap WhatsApp add-on. Filter by vertical to find the right prototype in seconds. Every card carries its deliverability stamp, Meta category, cadence, the free-window economics, and the timing signal that makes the conversation relevant now. Built to explore what WhatsApp messaging can do for your business, one industry at a time.</p>
+  <div class="metabar">
+    <span class="chip"><b id="ucCount">0</b> use cases</span>
+    <span class="chip"><b>12</b> verticals</span>
+    <span class="chip">Marketing + Utility <b>·</b> no Auth</span>
+    <span class="chip">Direct <b>·</b> Connect</span>
+    <span class="chip">Rates current to <b>Jan 2026</b></span>
+  </div>
+</header>
+
+<nav class="tabs" id="tabs">
+  <button class="active" data-tab="library">Use-Case Library</button>
+  <button data-tab="directconnect">Direct vs Connect</button>
+  <button data-tab="categories">Categories &amp; Economics</button>
+  <button data-tab="waba">Setup, Templates &amp; WABA</button>
+  <button data-tab="how">How to Use This</button>
+</nav>
+
+<main>
+  <!-- LIBRARY -->
+  <section class="tabpane active" id="library">
+    <div class="lib">
+      <aside class="filters">
+        <div class="searchwrap"><input id="search" type="text" placeholder="Search use cases..."></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <h3 style="margin:0">Filters</h3><button class="clearbtn" id="clearFilters">Reset</button>
+        </div>
+        <div class="fgroup"><div class="lbl">Vertical</div><div id="fVertical"></div></div>
+        <div class="fgroup"><div class="lbl">Meta Category</div><div id="fCategory"></div></div>
+        <div class="fgroup"><div class="lbl">Cadence</div><div id="fCadence"></div></div>
+        <div class="fgroup"><div class="lbl">CleverTap deliverability</div><div id="fDeliver"></div></div>
+      </aside>
+      <div>
+        <div class="resultbar">
+          <button id="filterToggle" class="filter-toggle" aria-expanded="false">☰ Filters</button>
+          <div class="resultcount" id="resultCount"></div>
+          <div class="viewtoggle">
+            <button id="viewGrouped" class="active">Grouped</button>
+            <button id="viewFlat">Flat</button>
+          </div>
+        </div>
+        <div id="results"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DIRECT VS CONNECT -->
+  <section class="tabpane doc" id="directconnect">
+    <h2>WhatsApp Direct vs WhatsApp Connect</h2>
+    <p class="lead">Two ways CleverTap gets your messages onto WhatsApp. The difference decides billing, setup speed, and which accounts each one suits.</p>
+    <table class="ref">
+      <tr><th></th><th>WhatsApp Direct</th><th>WhatsApp Connect</th></tr>
+      <tr><td><b>Who is the BSP</b></td><td>CleverTap is your BSP directly. No external provider needed.</td><td>You bring your own BSP (Gupshup, Kaleyra, Infobip, Sinch, Vonage, MSG91, Haptik, and more).</td></tr>
+      <tr><td><b>Best fit</b></td><td>Startups, Essentials plan, fast start, low ops overhead.</td><td>Enterprises with an existing BSP, negotiated Meta rates, or a live number they will not move.</td></tr>
+      <tr><td><b>Billing</b></td><td>20% of base plan fee + prepaid CleverTap credits. Add-on will not enable without credits.</td><td>Governed by your BSP contract. CleverTap is the orchestration layer only.</td></tr>
+      <tr><td><b>Credits</b></td><td>No expiry, roll over across billing cycles. Purchased under Billing &gt; My Plan &gt; Manage Add-ons.</td><td>Not applicable. Meta/BSP billing sits outside CleverTap.</td></tr>
+      <tr><td><b>Failure mode</b></td><td>When credits hit zero, all Direct campaigns stop and cannot restart until you top up. Restart is manual.</td><td>Unaffected by CleverTap credit balance.</td></tr>
+      <tr><td><b>Setup</b></td><td>Configure under Settings &gt; Channels &gt; WhatsApp right after purchase.</td><td>Share the WABA with the BSP as a partner via Meta Business Suite (up to two partners).</td></tr>
+      <tr><td><b>Migration friction</b></td><td>Lowest. Turn on this week.</td><td>You keep your existing number and rates.</td></tr>
+    </table>
+    <div class="callout"><div class="h">Which one to use</div><p>Larger, regulated businesses (telco, insurance, banking) often land on <b>Connect</b>, because they usually already hold a BSP relationship, a verified number, and negotiated Meta rates they will not move. <b>Direct</b> is the cleaner choice for smaller, faster-moving teams where turning WhatsApp on quickly, without chasing a separate BSP contract, is the real advantage. Matching the flavour to your stage is a good early question to settle.</p></div>
+    <div class="callout flag"><div class="h">Who wires it up</div><p>The connection and provisioning itself is a technical setup task, typically handled by a messaging or technical team, not the people evaluating use cases. This tab is here so you can gauge feasibility, not so you have to do the plumbing.</p></div>
+  </section>
+
+  <!-- CATEGORIES -->
+  <section class="tabpane doc" id="categories">
+    <h2>Template Categories &amp; the Economics That Shape Every Prototype</h2>
+    <p class="lead">Meta runs four categories, per-message pricing since 1 July 2025. The category and the free-window rules decide the cost of every use case, so they are tagged on every card.</p>
+    <div class="callout block-red"><div class="h">Good to know · CleverTap limitation</div><p><b>CleverTap does not support Authentication templates.</b> Through CleverTap WhatsApp Direct you can send <b>Marketing</b> and <b>Utility</b> templates, plus free-form <b>Service</b> replies inside the 24h window. OTP and verification codes over WhatsApp are <b>not deliverable</b> through CleverTap Direct. The <b>Marketing "Product Messages"</b> sub-type is also not supported. So if you need one-time passwords over WhatsApp, that would run through a dedicated auth provider, SMS, or a separate BSP, not CleverTap. The 5 Authentication cards in the library are flagged and shown for completeness only.</p></div>
+    <div class="legend">
+      <span><span class="dot" style="background:var(--cat-mkt)"></span> Marketing</span>
+      <span><span class="dot" style="background:var(--cat-util)"></span> Utility</span>
+      <span><span class="dot" style="background:var(--cat-auth)"></span> Authentication</span>
+      <span><span class="dot" style="background:var(--cat-svc)"></span> Service</span>
+    </div>
+    <table class="ref">
+      <tr><th>Category</th><th>What it is</th><th>Cost behaviour</th></tr>
+      <tr><td><b>Marketing</b></td><td>Promotions, offers, re-engagement, anything that is not utility or auth.</td><td>Highest rate. No volume discount. Charged even inside the 24h window.</td></tr>
+      <tr><td><b>Utility</b></td><td>Transactional, triggered by a user action (order, payment, booking).</td><td>Much cheaper than marketing. <b>Free</b> when sent inside an open 24h service window. Charged outside it. Volume tiers apply.</td></tr>
+      <tr><td><b>Authentication</b><br><span style="color:#f0605a;font-size:11px;font-weight:600">NOT VIA CLEVERTAP</span></td><td>One-time passwords and verification codes.</td><td>Meta prices this lowest, but <b>CleverTap does not support Authentication templates</b>. Not deliverable through CleverTap Direct.</td></tr>
+      <tr><td><b>Service</b></td><td>Free-form replies inside a customer-initiated window. Supported: CleverTap's Conversations feature lets you reply to users from the dashboard.</td><td><b>Free</b> for all businesses since 1 Nov 2024.</td></tr>
+    </table>
+    <h3>The two free windows every rep should recite</h3>
+    <ul>
+      <li><b>24-hour service window.</b> When a user messages a business, a 24h window opens for free service replies, and it resets with each new user message. This is why inbound-first mechanics (click-to-WhatsApp, QR, "reply YES") are so cost-efficient.</li>
+      <li><b>72-hour entry-point window.</b> When a customer messages you from an Ad that Clicks to WhatsApp or a Facebook Page CTA, all your messages for the next 72 hours are free, including templates.</li>
+    </ul>
+    <div class="callout flag"><div class="h">Auth-international markets, if auth is routed elsewhere</div><p>Since CleverTap Direct cannot send Authentication templates at all, this only matters if the customer routes OTP through a separate provider. If they do, note that Meta charges higher <b>authentication-international</b> rates for OTPs sent to a set of markets (the list expanded in Feb 2025 and includes markets such as Egypt, Malaysia, Nigeria, Pakistan, Saudi Arabia, South Africa, and the UAE). An SMS-beating cost comparison into those markets is worth checking against the current rate card first.</p></div>
+    <div class="callout"><div class="h">Rates move</div><p>As of 1 Jan 2026 Meta adjusted regional rates (India marketing up ~10%, India moved to INR billing) and reviews rates roughly quarterly. Any cost model in a deck needs a "rates current as of, confirm the live card" footnote.</p></div>
+    <h3>Template types available in CleverTap</h3>
+    <ul>
+      <li>Basic, Limited-Time-Offer with expiry timer (not allowed in Utility), Carousel up to 10 cards.</li>
+      <li>WhatsApp Flows for in-chat forms (feedback, reservations, data capture), quick-reply and CTA buttons, marketing-opt-out button.</li>
+      <li><b>Category constraint:</b> only Marketing and Utility are usable. Authentication and Marketing (Product Messages) templates are not supported in CleverTap.</li>
+      <li><b>API constraint:</b> the Create-Campaign API does not yet support Carousel, LTO, or copy-code templates. Those are dashboard-built only. Flag it honestly.</li>
+    </ul>
+  </section>
+
+  <!-- WABA -->
+  <section class="tabpane doc" id="waba">
+    <h2>Can They Run More Than One WABA? Yes. Here Is How.</h2>
+    <p class="lead">Routine, with limits worth knowing. The structure is a nesting doll: Meta Business Portfolio holds WABAs, WABAs hold phone numbers.</p>
+    <table class="ref">
+      <tr><th>Level</th><th>Limit</th><th>Notes</th></tr>
+      <tr><td><b>Business Portfolio</b></td><td>Up to 20 WABAs after Business Verification</td><td>Request more via a Meta support ticket.</td></tr>
+      <tr><td><b>Phone numbers</b></td><td>Starts at 2, expandable to 20</td><td>After verification + approved display name. Beyond 20 needs a direct Meta arrangement.</td></tr>
+      <tr><td><b>Templates per WABA</b></td><td>Up to 250</td><td>Per WABA, not per number.</td></tr>
+      <tr><td><b>Messaging limits</b></td><td>Pooled at portfolio level</td><td>Shared across all numbers. One high-volume number can throttle the rest. Volume also aggregates by market and category across the portfolio.</td></tr>
+    </table>
+    <h3>Setup path in plain terms</h3>
+    <ul>
+      <li>Business creates or uses a Meta Business Portfolio, completes Business Verification.</li>
+      <li>Then either Meta's <b>Embedded Signup</b> flow (fastest, generates the WABA and provisions the number) or, for Connect, shares the WABA with the BSP as a partner (up to two partners) via Meta Business Suite.</li>
+      <li>For Direct, CleverTap runs that provisioning inside Settings &gt; Channels.</li>
+    </ul>
+    <div class="callout"><div class="h">Two hard constraints to plan around</div><p>A WABA belongs to only one business portfolio and cannot be migrated between businesses. Its time zone and currency cannot be edited once a credit line is attached. So a multi-market business (one running across many countries) must decide its WABA and number architecture <b>up front</b>, because it cannot be cleanly re-parented later.</p></div>
+    <div class="callout"><div class="h">Confirmed for CleverTap</div><p>CleverTap supports multiple WhatsApp numbers or WABAs under one dashboard, to scale across geographies, brands, or functions. The nuance to confirm for a specific rollout: each CleverTap <b>project</b> maps to a distinct number, though a single WABA can be referenced across projects. Get the project-to-number mapping confirmed before committing to a multi-market architecture.</p></div>
+
+    <h2 style="margin-top:34px">Replying to Conversations</h2>
+    <p class="lead">Yes, two-way works. This is what makes the service-window and two-way cards in the library deliverable.</p>
+    <ul>
+      <li>When a user replies to one of your messages, CleverTap's <b>Conversations</b> feature lets you reply directly from the dashboard, inside the 24h service window.</li>
+      <li>Subscribing to CleverTap BSP (WhatsApp Direct) gives access to <b>Campaigns, Journeys, and Conversations</b>. So keyword auto-replies, quick-reply payload capture, and agent handoff are all in scope.</li>
+      <li>Replies inside the 24h window are free-form (no template needed) and free of Meta charge. This is the cost-efficient heart of any inbound-first mechanic.</li>
+    </ul>
+    <div class="callout"><div class="h">Is the Service category fine? Yes</div><p>Service is not a template you create or submit for approval. It is the free-form reply layer inside the 24h window, and CleverTap's Conversations feature fully supports it: free-form text and file replies, ticket statuses (New, Active, and so on), autoresponders, FAQs, and quick replies, all available with the WhatsApp add-on. The one thing to remember is you cannot <b>initiate</b> with a Service message. It only exists as a reply. So Service sits under your two-way and free-window cards as the reply layer, never as a standalone campaign.</p></div>
+
+    <h2 style="margin-top:34px">Template Creation Process</h2>
+    <p class="lead">On Direct you build templates inside CleverTap. No need to create them in Meta first.</p>
+    <table class="ref">
+      <tr><th>Step</th><th>What happens</th></tr>
+      <tr><td><b>1 · Create in CleverTap</b></td><td>Settings &gt; Channels &gt; WhatsApp &gt; WhatsApp Direct, pick the WABA, Templates tab, + Template. CleverTap BSP customers create templates directly on the platform, no Meta-first, no double entry.</td></tr>
+      <tr><td><b>2 · Pick category</b></td><td>Marketing or Utility only. Authentication and Marketing (Product Messages) are not selectable. LTO templates are Direct-only and Marketing-only.</td></tr>
+      <tr><td><b>3 · Name and language</b></td><td>Template name in lowercase letters, numbers, and underscores only. Select one or more languages.</td></tr>
+      <tr><td><b>4 · Build the body</b></td><td>Header (text, image, video, document, location), body with variables, and buttons: up to 5 custom buttons plus 1 marketing opt-out button. CTA types are Call Phone and Visit Website; Quick Reply supports custom payloads for response tracking.</td></tr>
+      <tr><td><b>5 · Template Library (optional)</b></td><td>Direct offers out-of-the-box template structures. + Template &gt; Template Library pre-populates the structure, category, and components.</td></tr>
+      <tr><td><b>6 · Submit for review</b></td><td>Sent to Meta. Approval can take up to 24 hours. Status auto-syncs from Meta into CleverTap, with manual refresh available.</td></tr>
+    </table>
+    <div class="callout"><div class="h">Two escape hatches</div><p>If creating a template in CleverTap fails, build it in Meta WhatsApp Manager and <b>import</b> it. On <b>Connect</b>, you register or import your BSP's already-approved templates into CleverTap (Import Template works only if the BSP supports import and shares the endpoint and credentials).</p></div>
+  </section>
+
+  <!-- HOW -->
+  <section class="tabpane doc" id="how">
+    <h2>How to Use This Gallery</h2>
+    <p class="lead">Browse the WhatsApp messages that fit your business, see how each one works, and understand what it costs to run. Start with your industry and go from there.</p>
+    <div class="howcard"><h3>Start with your industry</h3><p>Filter to your vertical to see the WhatsApp mechanics that fit your business, from transactional updates to promotions to two-way conversations. Every card is a real, buildable pattern, not a mockup, and the ones marked as journeys show how a few messages link into a sequence like onboarding or renewal.</p></div>
+    <div class="howcard"><h3>See what each message does</h3><p>Open any card for the goal, the problem it solves, how it works, and the moment that makes it relevant, alongside a live WhatsApp preview with sample copy you can adapt. A good place to start is one <b>Utility</b> message (a helpful update), one <b>Marketing</b> message (an offer), and one two-way or in-chat form, to see the full range.</p></div>
+    <div class="howcard"><h3>Know what it costs</h3><p>Tags tell you the economics at a glance: a <b>Free-window</b> flag means the message can be sent free inside WhatsApp's 24-hour service window, while Marketing messages are always paid. The deliverability stamp tells you whether a message can be sent through CleverTap directly. So you can plan around cost and feasibility instead of guessing.</p></div>
+    <div class="callout"><div class="h">Reading the tags</div><p>Every card carries a <b>deliverability stamp</b> first: <b style="color:var(--wa)">✓ CleverTap-ready</b> (standard Marketing or Utility template, works on Direct and Connect), <b style="color:var(--amber)">△ Caveat</b> (works but with a condition, open the card to see it, for example WhatsApp Flows needs a provider that supports it, carousel and LTO are dashboard-only), or <b style="color:#f0605a">✕ Not via CleverTap</b> (Authentication and OTP, not deliverable). Then the Meta <b>category</b>, the <b>cadence</b>, and a <b>Free-window</b> flag. Use the deliverability filter on the left to focus on what CleverTap can deliver today. Open any card for the full goal, roadblock, mechanic, timing trigger, and a live WhatsApp mockup.</p></div>
+  </section>
+</main>
+
+<div class="overlay" id="overlay"><div class="modal" id="modal"></div></div>
+
+<footer>
+  WhatsApp Add-on Gallery · A use-case pattern library for the CleverTap WhatsApp add-on · 95 use cases across 12 verticals, engine-driven to extend · Meta rates current to Jan 2026, confirm the live rate card before any cost model · Sample copy uses placeholder tokens; localise before use.
+</footer>
+
+<script>
+// ---- DATA: mechanics x verticals. Seeded set, extensible. ----
+const CASES = [
+  {emoji:"👋",v:"E-Commerce",title:"Click-to-WhatsApp welcome + opt-in",cat:"Marketing",cad:"Journey",free:true,
+   goal:"Turn an ad click into a consented WhatsApp contact.",road:"Cold ad traffic has no way back. A click-to-WhatsApp entry captures intent and opens a 72-hour free window.",mech:"Ad that Clicks to WhatsApp lands the user in chat. A welcome template greets them, offers a first-order incentive, and captures marketing opt-in. All messages free for 72 hours.",trig:"The user just tapped a click-to-WhatsApp ad. The entry point is the signal, and the free window is live now.",head:"Welcome",img:"WELCOME OFFER",body:"Hi {{name}}, thanks for reaching out. Here is {{offer}} on your first order. Want me to send you our best picks this week?",btns:[{t:"Yes, show me",cta:true},{t:"Maybe later"}],journey:["<b>On entry:</b> welcome, first-order offer, capture opt-in (free 72h window)","<b>Day 1:</b> if no browse yet, send a best-sellers nudge","<b>Day 3:</b> if no order, remind that the welcome offer is expiring"]},
+  {emoji:"🛒",v:"E-Commerce",title:"Abandoned-cart recovery",cat:"Marketing",cad:"Journey",free:false,
+   goal:"Recover checkouts that stalled at the last step.",road:"The buyer got distracted and email sits unopened. WhatsApp lands where they actually look.",mech:"Cart-abandoned event fires a two-step journey: a soft nudge at 1 hour, a gentle incentive at 24 hours if still unconverted. Holdout for lift.",trig:"Cart-abandonment is already tracked and volume is material. That is the signal, not just that they sell things.",head:"Still thinking it over?",img:"YOUR ITEM",body:"Hi {{name}}, your {{item}} is still in your cart. Stock moves fast on popular items. Want to complete checkout?",btns:[{t:"Complete my order",cta:true},{t:"Not now"}],journey:["<b>1 hour:</b> soft reminder, no discount","<b>24 hours:</b> if still open, add free-delivery or a small nudge","<b>48 hours:</b> final reminder, then drop to a 10% holdout to measure lift"]},
+  {emoji:"🆕",v:"E-Commerce",title:"Back-in-stock alert",cat:"Utility",cad:"Automated",free:true,
+   goal:"Convert demand that was blocked by an out-of-stock item.",road:"The buyer wanted it, it was gone, and they forgot. A timely ping recaptures intent at its peak.",mech:"User opts in on the product page. A restock event triggers a utility template. If they reply, the 24h window opens and follow-ups are free.",trig:"A watched or wishlisted item just restocked. High-intent and time-sensitive.",head:"It is back",img:"RESTOCKED",body:"Good news {{name}}. The {{item}} you were watching is back in stock. Limited quantity this time.",btns:[{t:"View item",cta:true}]},
+  {emoji:"📉",v:"E-Commerce",title:"Price-drop on a watched item",cat:"Utility",cad:"Automated",free:true,
+   goal:"Trigger action the moment a watched item becomes affordable.",road:"Buyers watch and wait, then miss the drop. The alert closes that gap.",mech:"Price-change event on a watched item fires a utility template with old and new price.",trig:"An item the user is watching dropped in price. The drop itself is the relevance.",head:"Price dropped",body:"{{name}}, the {{item}} you are watching just dropped from {{oldPrice}} to {{newPrice}}. Grab it before it moves.",btns:[{t:"See the item",cta:true}]},
+  {emoji:"🚚",v:"E-Commerce",title:"Order shipped + live tracking",cat:"Utility",cad:"Automated",free:false,
+   goal:"Cut where-is-my-order tickets before they happen.",road:"Post-purchase anxiety drives support volume. Proactive tracking removes the reason to ask.",mech:"Fulfilment event sends a utility template with a tracking CTA. Any reply opens a free service window for questions.",trig:"An order just moved to shipped. Purely transactional, high open rate.",head:"On its way",body:"Your order {{orderId}} has shipped and should arrive by {{eta}}. Track it live anytime.",btns:[{t:"Track my order",cta:true}]},
+  {emoji:"💵",v:"E-Commerce",title:"Cash-on-delivery confirmation",cat:"Utility",cad:"Automated",free:false,
+   goal:"Reduce failed and returned COD deliveries.",road:"COD orders bounce when nobody is home or the buyer forgets. A confirm-or-reschedule step protects the delivery.",mech:"Pre-dispatch utility template asks the buyer to confirm the COD order and delivery slot with quick replies.",trig:"A COD order is about to dispatch. Confirming now prevents a wasted trip.",head:"Confirm your order",body:"{{name}}, your COD order {{orderId}} for {{amount}} is ready to ship to {{address}}. Confirm so we can dispatch.",btns:[{t:"Confirm order",cta:true},{t:"Reschedule"}]},
+  {emoji:"🛍️",v:"E-Commerce",title:"In-chat catalog browse",cat:"Marketing",cad:"One-off",free:false,
+   goal:"Let customers shop a curated set without leaving the chat.",road:"Every extra tap to the app loses buyers. An in-chat catalog keeps discovery frictionless.",mech:"Carousel or product-message template surfaces a curated set. Note the Create-Campaign API does not support carousel yet, so build this in the dashboard.",trig:"A drop, restock, or seasonal edit is live for an engaged segment. The fresh collection is the hook.",head:"New this week",img:"CURATED EDIT",body:"{{name}}, our {{collection}} just landed. Here are the pieces going fast. Tap any to view.",btns:[{t:"Shop the edit",cta:true}]},
+  {emoji:"⭐",v:"E-Commerce",title:"Post-delivery review request",cat:"Utility",cad:"Automated",free:true,
+   goal:"Capture reviews and ratings while the purchase is fresh.",road:"Review links get ignored. An in-chat prompt right after delivery lifts response rates.",mech:"Delivery-confirmed event opens a WhatsApp Flows rating form. Rating captured as an event for write-back and segmentation.",trig:"An order was just delivered. Recency makes the review honest and likely.",head:"How did we do?",body:"{{name}}, your {{item}} arrived. A quick rating helps other shoppers and takes 15 seconds.",btns:[{t:"Rate my order",cta:true}]},
+  {emoji:"🛍️",v:"Food & Beverage",title:"Click-to-WhatsApp order (catalog)",cat:"Marketing",cad:"Automated",free:true,
+   goal:"Convert an ad or QR into an in-chat order.",road:"Menu apps add friction for a hungry customer. Ordering inside chat is faster and lands in the free window.",mech:"Click-to-WhatsApp ad or table QR opens chat with a menu catalog. Order and quantity captured via Flows. 72-hour free window applies to ad entries.",trig:"The user tapped a food ad or scanned a table QR. Intent is peak and immediate.",head:"Hungry?",img:"TODAY'S MENU",body:"Hi {{name}}, welcome. Browse today's menu and order right here. First order gets {{offer}}.",btns:[{t:"See menu",cta:true}]},
+  {emoji:"🍽️",v:"Food & Beverage",title:"Order confirmation + live track",cat:"Utility",cad:"Automated",free:false,
+   goal:"Confirm the order and hold attention through delivery.",road:"Hungry customers refresh the app. A live status keeps them calm and out of support.",mech:"Order-placed event confirms, then a follow-up utility template updates on out-for-delivery.",trig:"An order was just placed. Transactional, expected, welcome.",head:"Order confirmed",body:"Thanks {{name}}. Your order is being prepared. We will ping you when it is out for delivery. ETA {{eta}}.",btns:[{t:"Track order",cta:true}]},
+  {emoji:"🔁",v:"Food & Beverage",title:"Reorder your usual",cat:"Marketing",cad:"Recurring",free:false,
+   goal:"Lift repeat frequency from lapsed-but-loyal customers.",road:"Regulars fall out of rhythm. A one-tap reorder removes every step between craving and checkout.",mech:"Segment of customers past their usual reorder gap. Quick-reply reorders the last basket.",trig:"A regular has gone quiet past their normal interval. The gap is the signal.",head:"Your usual, one tap away",img:"YOUR LAST ORDER",body:"Hey {{name}}, craving the usual? Your last order was {{lastOrder}}. Reorder in one tap.",btns:[{t:"Reorder now",cta:true},{t:"See menu"}]},
+  {emoji:"🎁",v:"Food & Beverage",title:"Loyalty points near expiry",cat:"Utility",cad:"Automated",free:false,
+   goal:"Drive a redemption visit before points lapse.",road:"Points expire silently and customers feel cheated later. A heads-up turns loss aversion into a visit.",mech:"Points-balance and expiry-date properties trigger a utility reminder a set window before expiry.",trig:"The member has redeemable points expiring soon. Time-boxed and personal.",head:"Your points are about to expire",body:"{{name}}, you have {{points}} points expiring on {{expiry}}. That is enough for a free {{reward}}. Do not leave them behind.",btns:[{t:"Redeem now",cta:true}]},
+  {emoji:"⏳",v:"Food & Beverage",title:"Limited-time offer (LTO card)",cat:"Marketing",cad:"One-off",free:false,
+   goal:"Create urgency around a short-window promo.",road:"Broadcast promos blur together. An LTO template with a visible countdown makes the deadline real.",mech:"LTO template with expiry timer to an engaged segment. Not available in Utility, so this is Marketing by design.",trig:"A genuine time-boxed offer such as festive, match-day, or payday. Only fire when the deadline is real.",head:"48 hours only",img:"FESTIVE DEAL",body:"{{name}}, our {{festive}} bundle is back for 48 hours. Two mains, one side, one drink. Offer ends {{expiry}}.",btns:[{t:"Order the bundle",cta:true}],lto:true},
+  {emoji:"📅",v:"Food & Beverage",title:"Table reservation (Flows form)",cat:"Utility",cad:"Automated",free:true,
+   goal:"Take bookings in chat without a phone call.",road:"Phone bookings drop after hours and web forms lose people. An in-chat form captures the table any time.",mech:"WhatsApp Flows form captures date, time, and party size. Confirmation sent as a utility template.",trig:"The user asked about booking or tapped a reserve CTA. The request is live.",head:"Reserve a table",body:"{{name}}, happy to book you in. Pick a date, time, and party size and I will confirm right away.",btns:[{t:"Book a table",cta:true}]},
+  {emoji:"⭐",v:"Food & Beverage",title:"Post-meal CSAT (Flows)",cat:"Utility",cad:"Automated",free:true,
+   goal:"Catch a bad experience before it becomes a public review.",road:"Unhappy diners go quiet then post one-star reviews. An in-chat check-in gives them a private path first.",mech:"Order-completed event opens a Flows rating form. Low scores route to a service recovery flow, high scores to a review ask.",trig:"A meal or order just completed. Recency makes the feedback accurate.",head:"How was everything?",body:"{{name}}, thanks for dining with us. A quick rating helps us get better. How did we do?",btns:[{t:"Leave a rating",cta:true}]},
+  {emoji:"🔙",v:"Food & Beverage",title:"Win-back lapsed diner",cat:"Marketing",cad:"Journey",free:false,
+   goal:"Bring back diners who have not ordered in a while.",road:"Lapsed customers rarely return on their own. A what-you-missed plus a small offer gives a reason.",mech:"Dormant segment enters a short journey: a new-menu highlight, then a returning-customer incentive.",trig:"The customer has gone quiet past a churn threshold. The dormancy is the signal.",head:"We miss you",body:"{{name}}, it has been a while. We added {{newItems}} to the menu and saved you {{offer}} on your next order.",btns:[{t:"Order now",cta:true}],journey:["<b>Step 1:</b> we miss you, here is what is new on the menu","<b>Step 2:</b> a returning-customer offer with an expiry","<b>Step 3:</b> last call on the offer, then rest the contact"]},
+  {emoji:"📅",v:"On-Demand",title:"Booking confirmation",cat:"Utility",cad:"Automated",free:false,
+   goal:"Confirm the booking and set clear expectations.",road:"Ambiguity around location and time creates no-shows and support calls.",mech:"Booking-created event sends a utility confirmation with location, time, and details.",trig:"A booking was just made. Expected and transactional.",head:"Booking confirmed",body:"{{name}}, your {{service}} is booked for {{time}} at {{location}}. Tap below for details and next steps.",btns:[{t:"View booking",cta:true}]},
+  {emoji:"📅",v:"On-Demand",title:"Appointment booking (Flows form)",cat:"Utility",cad:"Automated",free:true,
+   goal:"Let customers self-book a slot inside chat.",road:"Back-and-forth to find a time loses people. An in-chat scheduler closes the booking in one message.",mech:"WhatsApp Flows form shows available slots and captures the choice. Confirmation follows as a utility template.",trig:"The user asked to book or tapped a schedule CTA. The intent is live.",head:"Pick a time",body:"{{name}}, let us get you booked. Choose a slot that works and I will lock it in.",btns:[{t:"See available times",cta:true}]},
+  {emoji:"⏰",v:"On-Demand",title:"Return / drop-off reminder",cat:"Utility",cad:"Automated",free:false,
+   goal:"Reduce late returns and the fees and friction they cause.",road:"Users lose track of time. A reminder ahead of the deadline protects both sides.",mech:"Scheduled utility reminder a set time before the deadline, with an extend CTA.",trig:"A return or deadline is approaching. Time-based and useful.",head:"Return due soon",body:"Heads up {{name}}, your {{item}} is due back at {{time}}. Need more time? You can extend in the app.",btns:[{t:"Extend booking",cta:true},{t:"Get directions"}]},
+  {emoji:"✅",v:"On-Demand",title:"Two-way provider approval",cat:"Utility",cad:"Automated",free:true,
+   goal:"Speed up provider or host approvals so bookings do not stall.",road:"A request waiting on a provider is a booking at risk. Faster approval means fewer drop-offs.",mech:"Request pings the provider with quick-reply Approve or Decline. The reply opens a free window for any back-and-forth.",trig:"A customer request is pending a provider decision. The pending step is the trigger.",head:"New booking request",body:"{{provider}}, {{customer}} would like to book {{service}} for {{dates}}. Approve to confirm.",btns:[{t:"Approve",cta:true},{t:"Decline"}]},
+  {emoji:"🎟️",v:"On-Demand",title:"Pass / subscription expiry nudge",cat:"Marketing",cad:"Automated",free:false,
+   goal:"Renew lapsing subscribers before they churn.",road:"Passes expire quietly and users drift to a competitor. A timely renewal offer holds them.",mech:"Expiry-date property triggers a renewal offer a few days out with a returning-user incentive.",trig:"A pass or subscription is about to expire. The expiry date is the timing.",head:"Your pass is ending",body:"{{name}}, your {{pass}} expires {{expiry}}. Renew now and keep your perks rolling.",btns:[{t:"Renew my pass",cta:true}]},
+  {emoji:"🔥",v:"On-Demand",title:"Last-minute deals",cat:"Marketing",cad:"Recurring",free:false,
+   goal:"Fill same-day inventory that would otherwise go empty.",road:"Empty slots are lost revenue. Last-minute buyers respond to a nudge, not a search.",mech:"Geo and category segment receives a curated set of same-day slots via carousel.",trig:"There is unsold same-day inventory near the user. Perishable supply is the signal.",head:"Tonight, near you",img:"CURATED SLOTS",body:"{{name}}, a few last-minute openings near {{area}} tonight, up to {{discount}} off.",btns:[{t:"See tonight's deals",cta:true}]},
+  {emoji:"🛵",v:"On-Demand",title:"Provider en-route / status",cat:"Utility",cad:"Automated",free:false,
+   goal:"Reassure the customer that help is on the way.",road:"Waiting with no update breeds cancellations and one-star ratings. Live status calms the wait.",mech:"Status-change event sends a utility update as the provider is dispatched and en route.",trig:"The provider was just assigned or is on the way. The status change is the trigger.",head:"On the way",body:"{{name}}, {{provider}} is on the way and should reach you by {{eta}}. Track them live below.",btns:[{t:"Track live",cta:true}]},
+  {emoji:"⭐",v:"On-Demand",title:"Post-service rating (Flows)",cat:"Utility",cad:"Automated",free:true,
+   goal:"Measure quality and surface issues fast.",road:"Silent dissatisfaction churns quietly. An in-chat rating catches it while it can be fixed.",mech:"Service-completed event opens a Flows rating form, low scores route to recovery.",trig:"A service just completed. Recency makes the rating fair.",head:"Rate your service",body:"{{name}}, how was your {{service}} with {{provider}}? Your rating keeps quality high.",btns:[{t:"Leave a rating",cta:true}]},
+  {emoji:"📅",v:"Travel & Ticketing",title:"Booking confirmation + e-ticket",cat:"Utility",cad:"Automated",free:false,
+   goal:"Deliver the ticket where the traveller can always find it.",road:"E-tickets get lost in email at the gate. WhatsApp keeps it one tap away.",mech:"Booking-confirmed event sends a utility template with the e-ticket and trip details.",trig:"A trip was just booked. Transactional and reassuring.",head:"You are booked",body:"{{name}}, your {{route}} on {{date}} is confirmed. Your e-ticket is attached. Safe travels.",btns:[{t:"View e-ticket",cta:true}]},
+  {emoji:"✈️",v:"Travel & Ticketing",title:"Departure reminder + check-in",cat:"Utility",cad:"Automated",free:false,
+   goal:"Reduce missed departures and last-minute panic.",road:"Travellers forget times and terminals. A timed reminder removes the risk.",mech:"Scheduled utility reminder the evening before and morning of, with a check-in CTA.",trig:"Departure is within the reminder window. Purely time-based.",head:"Trip tomorrow",body:"{{name}}, your {{route}} departs {{time}} from {{terminal}}. Check in now to save time at the counter.",btns:[{t:"Check in",cta:true},{t:"Get directions"}]},
+  {emoji:"🧳",v:"Travel & Ticketing",title:"Complete your booking",cat:"Marketing",cad:"Journey",free:false,
+   goal:"Recover searches that never became bookings.",road:"Travellers compare and stall. A nudge with the exact route recaptures the plan.",mech:"Search-without-booking event enters a short journey: reminder, then a fare-hold or small incentive.",trig:"A specific route was searched but not booked. The named route is the hook.",head:"Almost there",body:"{{name}}, your {{route}} search is saved. Seats on this date are filling. Lock it in before the fare moves.",btns:[{t:"Complete booking",cta:true}],journey:["<b>2 hours:</b> your route is saved, seats are filling","<b>Day 1:</b> fare-hold offer or a small incentive","<b>Day 2:</b> final nudge before the fare moves, then holdout"]},
+  {emoji:"💺",v:"Travel & Ticketing",title:"Ancillary upsell (seat / baggage)",cat:"Marketing",cad:"Automated",free:false,
+   goal:"Grow revenue per booking with well-timed add-ons.",road:"Add-ons pitched at booking get skipped. Pitched closer to travel, they convert.",mech:"Pre-trip segment receives an add-on offer for seat selection, baggage, or insurance.",trig:"The trip is a set number of days out, the pre-travel planning window. The countdown is the timing.",head:"Travel comfier",body:"{{name}}, your {{route}} is in {{days}} days. Add extra baggage or pick your seat now before prices rise at the airport.",btns:[{t:"Add to my trip",cta:true}]},
+  {emoji:"⚠️",v:"Travel & Ticketing",title:"Gate change / delay alert",cat:"Utility",cad:"Automated",free:true,
+   goal:"Keep travellers informed through disruption.",road:"A missed gate change strands people and floods support. A proactive alert prevents both.",mech:"Operational-change event sends a utility alert. Replies open a free service window for rebooking help.",trig:"A gate change, delay, or platform change just happened. The disruption is the trigger.",head:"Travel update",body:"{{name}}, your {{route}} now departs from {{gate}} at {{time}}. We will keep you posted. Questions? Reply here.",btns:[{t:"View trip",cta:true}]},
+  {emoji:"⭐",v:"Travel & Ticketing",title:"Post-trip NPS (Flows)",cat:"Utility",cad:"Automated",free:true,
+   goal:"Capture structured feedback while the trip is fresh.",road:"Review links get ignored. An in-chat form removes every extra tap.",mech:"Trip-completed event opens a WhatsApp Flows form. Score captured as an event for write-back.",trig:"A trip just ended. The recency makes feedback honest.",head:"How was your trip?",body:"{{name}}, thanks for travelling with us on {{route}}. A quick 20-second rating helps other travellers.",btns:[{t:"Rate my trip",cta:true}]},
+  {emoji:"🧭",v:"Travel & Ticketing",title:"Click-to-WhatsApp trip inquiry",cat:"Marketing",cad:"Automated",free:true,
+   goal:"Capture high-intent travellers from ads into a booking chat.",road:"Travel shoppers browse across tabs and vanish. A chat entry keeps the plan alive and free for 72 hours.",mech:"Click-to-WhatsApp ad opens a chat, a welcome template offers to help plan the route and capture opt-in.",trig:"The user tapped a destination or fare ad. Intent is peak and the free window is open.",head:"Where to next?",img:"PLAN YOUR TRIP",body:"Hi {{name}}, tell me where and when and I will find your best fares. First booking gets {{offer}}.",btns:[{t:"Start planning",cta:true}]},
+  {emoji:"📉",v:"Travel & Ticketing",title:"Fare-drop on a watched route",cat:"Utility",cad:"Automated",free:true,
+   goal:"Convert price-sensitive travellers the moment fares fall.",road:"Travellers set a route in mind then wait for a deal that they never notice. The alert catches it.",mech:"Fare-change event on a watched route fires a utility template with the new price.",trig:"A watched route dropped in price. The drop is the whole relevance.",head:"Fare dropped",body:"{{name}}, your {{route}} just dropped to {{newPrice}}. Fares like this do not last. Book while it is live.",btns:[{t:"Book now",cta:true}]},
+  {emoji:"🔐",v:"Payments & Fintech",title:"Login / transaction OTP",cat:"Authentication",cad:"Automated",free:false,unsupported:true,
+   goal:"Verify identity at login and high-value actions.",road:"SMS OTPs are costly and sometimes slow. WhatsApp auth is often cheaper and more reliable.",mech:"Authentication template delivers the one-time code. Charged even inside a window, so keep copy tight.",trig:"A login or sensitive action needs verification now. System-driven.",head:"",body:"{{code}} is your verification code. It expires in 5 minutes. Do not share it with anyone.",btns:[{t:"Copy code",cta:true}]},
+  {emoji:"💰",v:"Payments & Fintech",title:"Cashback earned",cat:"Utility",cad:"Automated",free:false,
+   goal:"Reinforce the reward loop right after a purchase.",road:"Cashback that is silent feels like nothing. A confirmation makes the value visible.",mech:"Transaction event sends a utility confirmation of cashback earned and running balance.",trig:"A qualifying transaction just completed. Immediate and satisfying.",head:"Cashback in",body:"Nice one {{name}}. You just earned {{cashback}} at {{merchant}}. Balance: {{balance}}. Ready for your next pay.",btns:[{t:"See my balance",cta:true}]},
+  {emoji:"💸",v:"Payments & Fintech",title:"Salary advance available",cat:"Utility",cad:"Recurring",free:false,
+   goal:"Surface earned-wage access at the moment of need.",road:"Users forget the feature until payday stress hits. A timed nudge meets them there.",mech:"Payday-cycle property triggers a utility message a few days before payday with the available advance.",trig:"The user is in the pre-payday window where cash is tightest. The cycle is the signal.",head:"You have earned it",body:"{{name}}, you have {{amount}} available to withdraw before payday. No interest, flat fee shown upfront.",btns:[{t:"Withdraw now",cta:true},{t:"How it works"}]},
+  {emoji:"🔋",v:"Payments & Fintech",title:"Low balance / top-up nudge",cat:"Utility",cad:"Automated",free:false,
+   goal:"Prevent a failed transaction at checkout.",road:"A declined payment breaks trust in the wallet. A proactive top-up nudge avoids the moment.",mech:"Balance-threshold property fires a utility top-up reminder.",trig:"Wallet balance dropped below a usable threshold. The balance itself is the trigger.",head:"Running low",body:"{{name}}, your wallet is down to {{balance}}. Top up now so your next payment goes through smoothly.",btns:[{t:"Top up",cta:true}]},
+  {emoji:"🧾",v:"Payments & Fintech",title:"Payment receipt",cat:"Utility",cad:"Automated",free:false,
+   goal:"Give instant proof of payment and reduce disputes.",road:"A silent charge invites a dispute. A clean receipt builds trust and cuts chargebacks.",mech:"Payment-success event sends a utility receipt with amount, merchant, and reference.",trig:"A payment just completed. Transactional and expected.",head:"Payment successful",body:"{{name}}, your payment of {{amount}} to {{merchant}} is confirmed. Reference {{ref}}. Keep this for your records.",btns:[{t:"View receipt",cta:true}]},
+  {emoji:"🤝",v:"Payments & Fintech",title:"Referral invite",cat:"Marketing",cad:"Recurring",free:false,
+   goal:"Turn happy users into a low-cost acquisition channel.",road:"Users would refer but never get around to it. A timely, rewarded prompt makes it easy.",mech:"High-satisfaction or milestone segment receives a referral template with a shareable link and reward.",trig:"The user just hit a positive milestone such as first cashback or a big saving. The good moment is the opening.",head:"Share and earn",body:"{{name}}, love the app? Invite a friend and you both get {{reward}} when they make their first transaction.",btns:[{t:"Invite a friend",cta:true}]},
+  {emoji:"💳",v:"Payments & Fintech",title:"Request money / bill split (two-way)",cat:"Utility",cad:"Automated",free:true,
+   goal:"Make peer requests happen inside the channel people already use.",road:"Chasing shared costs is awkward. An in-chat request with a pay link removes the friction.",mech:"A payment request sends a utility template to the payer with a pay CTA. Replies open a free window.",trig:"A user created a money request or bill split. The request is the trigger.",head:"You have a payment request",body:"{{name}}, {{requester}} requested {{amount}} for {{reason}}. Pay securely in a tap.",btns:[{t:"Pay now",cta:true},{t:"Decline"}]},
+  {emoji:"📊",v:"Payments & Fintech",title:"Statement ready",cat:"Utility",cad:"Recurring",free:false,
+   goal:"Deliver the monthly statement where it gets opened.",road:"Statement emails go unread. A WhatsApp ping with a secure link lifts engagement.",mech:"Scheduled utility template on statement generation with a secure document CTA.",trig:"A new statement was just generated. Calendar-driven.",head:"Your statement is ready",body:"{{name}}, your {{month}} statement is ready. Tap to view your balance and activity securely.",btns:[{t:"View statement",cta:true}]},
+  {emoji:"🔐",v:"Investment & Banking",title:"Login OTP",cat:"Authentication",cad:"Automated",free:false,unsupported:true,
+   goal:"Verify identity at login and sensitive actions.",road:"SMS OTPs cost more and can fail. WhatsApp auth is often cheaper and more reliable.",mech:"Authentication template delivers the one-time code. Charged even inside a window.",trig:"A login or sensitive action needs verification now. System-driven.",head:"",body:"{{code}} is your secure login code. It expires in 5 minutes. Never share it, not even with our staff.",btns:[{t:"Copy code",cta:true}]},
+  {emoji:"🔔",v:"Investment & Banking",title:"Transaction alert",cat:"Utility",cad:"Automated",free:false,
+   goal:"Give real-time confidence and catch fraud early.",road:"Users want to know the moment money moves. Delayed alerts erode trust.",mech:"Transaction event sends a utility alert with amount, merchant, and a not-me path.",trig:"A transaction just posted. Immediate by nature.",head:"Transaction alert",body:"{{name}}, a payment of {{amount}} to {{merchant}} was just made on your account at {{time}}. Not you?",btns:[{t:"This was not me",cta:true}]},
+  {emoji:"🪪",v:"Investment & Banking",title:"KYC completion nudge",cat:"Utility",cad:"Journey",free:false,
+   goal:"Rescue onboarding drop-offs stuck at verification.",road:"KYC is where sign-ups die. A guided nudge with a resume link recovers them.",mech:"KYC-incomplete event enters a short journey: reminder, then a help offer with a resume CTA.",trig:"The user started but did not finish verification. The stalled step is the signal.",head:"One step left",body:"{{name}}, your account is almost ready. Finish verifying your ID to unlock full access. It takes about 2 minutes.",btns:[{t:"Finish verification",cta:true},{t:"I need help"}],journey:["<b>Step 1:</b> one step left, resume verification (about 2 minutes)","<b>Step 2:</b> offer help, common blockers and a support path","<b>Step 3:</b> final nudge on what they unlock once verified"]},
+  {emoji:"📊",v:"Investment & Banking",title:"Statement / portfolio ready",cat:"Utility",cad:"Recurring",free:false,
+   goal:"Deliver the statement or portfolio summary where it gets read.",road:"Statement emails go unread. A WhatsApp ping with a secure link lifts engagement.",mech:"Scheduled utility template on generation with a secure document CTA.",trig:"A new statement or portfolio summary was just generated. Calendar-driven.",head:"Your statement is ready",body:"{{name}}, your {{month}} statement is ready. Tap to view your balance, returns, and activity.",btns:[{t:"View statement",cta:true}]},
+  {emoji:"👋",v:"Investment & Banking",title:"Onboarding welcome + opt-in",cat:"Marketing",cad:"Journey",free:true,
+   goal:"Start the relationship on the channel the customer prefers.",road:"New customers go cold between sign-up and first use. A warm welcome sets the tone and captures opt-in.",mech:"Account-created event sends a welcome template with a getting-started guide and marketing opt-in. Click-to-WhatsApp entries ride the 72-hour free window.",trig:"The customer just opened an account. The fresh start is the moment.",head:"Welcome aboard",body:"Hi {{name}}, welcome. Want alerts for statements, transactions, and market moves right here on WhatsApp?",btns:[{t:"Yes, keep me posted",cta:true},{t:"Not now"}],journey:["<b>On signup:</b> welcome, offer alerts opt-in","<b>Day 1:</b> complete-your-profile prompt","<b>Day 3:</b> first meaningful action nudge (statement, first transaction)","<b>Day 7:</b> intro a key feature they have not used","<b>Day 14:</b> check-in, anything we can help with"]},
+  {emoji:"📈",v:"Investment & Banking",title:"Price / market alert (opt-in)",cat:"Marketing",cad:"Automated",free:false,
+   goal:"Re-engage investors around moments that matter to them.",road:"Investors miss the moves they care about. A targeted, opted-in alert brings them back to act.",mech:"User sets a watch on a holding or index. A threshold event triggers a marketing alert with an in-app CTA.",trig:"A watched asset crossed the user's set threshold. The move is the trigger, and they asked for it.",head:"Market alert",body:"{{name}}, {{asset}} just moved {{change}} to {{price}}, past the level you set. Review your position?",btns:[{t:"Open my portfolio",cta:true}]},
+  {emoji:"📅",v:"Investment & Banking",title:"Advisor appointment (Flows)",cat:"Utility",cad:"Automated",free:true,
+   goal:"Convert interest into a booked advisor session.",road:"High-value conversations stall on scheduling. An in-chat booker closes the gap.",mech:"WhatsApp Flows form shows advisor availability and captures the booking. Confirmation follows as a utility template.",trig:"The customer asked to speak to an advisor or hit a wealth threshold. The request is live.",head:"Talk to an advisor",body:"{{name}}, ready to plan your next move? Pick a time with one of our advisors and I will confirm it.",btns:[{t:"Book a session",cta:true}]},
+  {emoji:"💳",v:"Investment & Banking",title:"Card activation / freeze (two-way)",cat:"Utility",cad:"Automated",free:true,
+   goal:"Give customers instant control over their card.",road:"A lost card at 11pm is a panic with no branch open. In-chat freeze gives immediate control.",mech:"Card-issued or suspected-fraud event sends a utility message with activate or freeze quick replies. Replies open a free window.",trig:"A new card was issued or unusual activity was flagged. The event is the trigger.",head:"Manage your card",body:"{{name}}, your new card ending {{last4}} is ready. Activate it now, or freeze instantly if anything looks off.",btns:[{t:"Activate card",cta:true},{t:"Freeze card"}]},
+  {emoji:"🔄",v:"Insurance",title:"Premium renewal reminder",cat:"Utility",cad:"Journey",free:false,
+   goal:"Protect renewal revenue and prevent lapsed cover.",road:"A missed renewal means lost cover for the customer and lost revenue for the brand. Both avoidable.",mech:"Renewal-date property enters a journey: early heads-up, reminder, then a final pre-lapse nudge with a pay CTA.",trig:"The policy renewal window has opened. The date is the whole point.",head:"Renewal coming up",body:"{{name}}, your {{policy}} renews on {{date}}. Keep your cover unbroken by renewing early. Same rate locked in.",btns:[{t:"Renew now",cta:true},{t:"Talk to us"}],journey:["<b>30 days out:</b> friendly heads-up, same rate locked in","<b>14 days out:</b> reminder with the renew CTA","<b>7 days out:</b> reminder plus offer to talk to a human","<b>2 days out:</b> final pre-lapse nudge","<b>Lapse day:</b> cover-at-risk message with one-tap renew"]},
+  {emoji:"🚗",v:"Insurance",title:"Motor / road-tax renewal",cat:"Utility",cad:"Journey",free:false,
+   goal:"Capture the annual motor and road-tax renewal moment.",road:"Drivers forget until they are pulled over. A timely reminder wins the renewal and the goodwill.",mech:"Renewal-date property triggers a utility reminder with a renew-and-pay CTA.",trig:"Motor insurance or road tax is due within the window. Annual and predictable.",head:"Road tax due soon",body:"{{name}}, your road tax and motor cover for {{plate}} expire {{date}}. Renew in a few taps, no queue.",btns:[{t:"Renew now",cta:true}],journey:["<b>21 days out:</b> heads-up that road tax and cover expire soon","<b>7 days out:</b> reminder with renew-and-pay CTA","<b>2 days out:</b> final nudge before it lapses"]},
+  {emoji:"📋",v:"Insurance",title:"Claim status update (two-way)",cat:"Utility",cad:"Automated",free:true,
+   goal:"Reduce claim anxiety and inbound status calls.",road:"A silent claim feels like a stuck claim. Proactive updates keep trust intact.",mech:"Claim-stage change sends a utility update. Replies open a free service window for questions or documents.",trig:"A claim just moved stage. The status change is the trigger.",head:"Claim update",body:"{{name}}, your claim {{claimId}} has moved to {{stage}}. We will message you at the next step. Questions? Just reply here.",btns:[{t:"View claim",cta:true}]},
+  {emoji:"📝",v:"Insurance",title:"Abandoned quote follow-up",cat:"Marketing",cad:"Journey",free:false,
+   goal:"Convert quotes that never became policies.",road:"People price cover then hesitate. A gentle follow-up with the exact quote closes the gap.",mech:"Quote-without-purchase event enters a short journey with the saved quote and a talk-to-a-human option.",trig:"A quote was generated but not bought. The saved quote is the hook.",head:"Your quote is saved",body:"{{name}}, your {{product}} quote of {{premium}} is ready when you are. Prefer to ask a question first?",btns:[{t:"Buy now",cta:true},{t:"Ask a question"}],journey:["<b>Day 1:</b> your quote is saved, buy or ask a question","<b>Day 3:</b> answer a common objection, offer a human","<b>Day 7:</b> final reminder before the quote expires"]},
+  {emoji:"📝",v:"Insurance",title:"Lead capture (Flows quote form)",cat:"Utility",cad:"Automated",free:true,
+   goal:"Turn an inquiry into a structured quote request in chat.",road:"Long web quote forms lose people. An in-chat form captures just what is needed to follow up.",mech:"WhatsApp Flows form captures the details needed to quote. Data flows to the CRM for a fast human or automated quote.",trig:"The user asked about cover or tapped a get-a-quote CTA. The interest is live.",head:"Get a quick quote",body:"{{name}}, happy to help. Answer a few quick questions and we will get you a quote in minutes.",btns:[{t:"Start my quote",cta:true}]},
+  {emoji:"📄",v:"Insurance",title:"Policy document delivery",cat:"Utility",cad:"Automated",free:false,
+   goal:"Deliver the policy and welcome pack reliably.",road:"Policy PDFs get buried in email. WhatsApp keeps the document findable when it matters.",mech:"Policy-issued event sends a utility template with the document and key cover details.",trig:"A policy was just issued or renewed. Transactional and expected.",head:"Your policy is active",body:"{{name}}, your {{policy}} is now active. Your documents are attached. Keep them handy for claims.",btns:[{t:"View documents",cta:true}]},
+  {emoji:"💗",v:"Insurance",title:"Wellness / benefit check-in",cat:"Marketing",cad:"Recurring",free:false,
+   goal:"Turn a payment relationship into an engagement one.",road:"Insurance is invisible between renewals. A value-add check-in keeps the brand warm.",mech:"Lifecycle segment receives a periodic wellness or benefit reminder tied to their plan.",trig:"The customer is mid-term with unused benefits. The gap between renewals is the opening.",head:"A benefit you have not used",body:"{{name}}, your plan includes {{benefit}} and you have not claimed it this year. Here is how to use it.",btns:[{t:"Use my benefit",cta:true}]},
+  {emoji:"⭐",v:"Insurance",title:"Post-claim NPS (Flows)",cat:"Utility",cad:"Automated",free:true,
+   goal:"Measure the claim experience, the moment that defines loyalty.",road:"The claim is where insurers win or lose the customer, yet feedback is rarely captured. In-chat NPS fixes that.",mech:"Claim-closed event opens a Flows NPS form. Detractors route to a service recovery flow.",trig:"A claim just closed. The experience is fresh and decisive for renewal.",head:"How did we handle your claim?",body:"{{name}}, your claim is settled. A quick rating helps us make claims smoother for everyone.",btns:[{t:"Rate the experience",cta:true}]},
+  {emoji:"🎓",v:"Education",title:"Click-to-WhatsApp enrollment inquiry",cat:"Marketing",cad:"Automated",free:true,
+   goal:"Capture course interest from ads into a guided chat.",road:"Prospective learners browse and bounce. A chat entry answers questions and captures the lead in the free window.",mech:"Click-to-WhatsApp ad opens chat, a welcome template offers course info and captures the lead. 72-hour free window applies.",trig:"The user tapped a course ad or scanned a campus QR. Intent is live and the window is open.",head:"Curious about {{course}}?",img:"COURSE INFO",body:"Hi {{name}}, thanks for your interest in {{course}}. Want the syllabus, fees, and next intake date?",btns:[{t:"Send me details",cta:true}]},
+  {emoji:"📚",v:"Education",title:"Class / session reminder",cat:"Utility",cad:"Journey",free:false,
+   goal:"Lift attendance and reduce no-shows.",road:"Learners overbook their lives and forget. A timed reminder protects the booking.",mech:"Scheduled utility reminder ahead of each session with a join or reschedule CTA.",trig:"A booked session is within the reminder window. Time-based.",head:"Class in 1 hour",body:"{{name}}, your {{class}} with {{tutor}} starts at {{time}}. Tap to join. Cannot make it? Reschedule here.",btns:[{t:"Join class",cta:true},{t:"Reschedule"}],journey:["<b>Evening before:</b> class tomorrow, add to calendar","<b>Morning of:</b> reminder with the join link","<b>1 hour before:</b> starting soon, tap to join"]},
+  {emoji:"🔥",v:"Education",title:"Streak / practice nudge",cat:"Marketing",cad:"Recurring",free:false,
+   goal:"Protect the daily habit that drives retention.",road:"Learning dies on the day the streak breaks. A nudge before it breaks saves the habit.",mech:"Inactivity trigger sends a streak-at-risk message with a one-tap resume.",trig:"The learner is about to break a streak. The at-risk streak is the signal.",head:"Your streak needs you",body:"{{name}}, you are on a {{streak}}-day streak. Two minutes today keeps it alive. Ready?",btns:[{t:"Practice now",cta:true}]},
+  {emoji:"💳",v:"Education",title:"Installment payment reminder",cat:"Utility",cad:"Automated",free:false,
+   goal:"Reduce missed course-fee installments.",road:"A missed payment risks access and awkward chasing. A clear reminder keeps both sides comfortable.",mech:"Payment-due property triggers a utility reminder with a pay CTA.",trig:"An installment is due within the window. Predictable and scheduled.",head:"Payment due soon",body:"{{name}}, your next installment of {{amount}} for {{course}} is due {{date}}. Pay early to keep uninterrupted access.",btns:[{t:"Pay now",cta:true}]},
+  {emoji:"🎓",v:"Education",title:"Re-enrollment / next course",cat:"Marketing",cad:"Journey",free:false,
+   goal:"Convert finishers into their next course.",road:"Completion is the highest-intent moment and it is usually wasted. Strike while proud.",mech:"Course-completed event enters a short journey suggesting the logical next course with a small returning-learner incentive.",trig:"The learner just finished a course. The completion is the peak moment.",head:"You did it",body:"Congrats {{name}}, you finished {{course}}. Ready for {{nextCourse}}? Returning learners get {{offer}}.",btns:[{t:"See next course",cta:true}],journey:["<b>On completion:</b> congrats, here is the logical next course","<b>Day 3:</b> returning-learner incentive","<b>Day 7:</b> last call on the incentive"]},
+  {emoji:"🎟️",v:"Education",title:"Trial-to-paid conversion",cat:"Marketing",cad:"Journey",free:false,
+   goal:"Convert free-trial learners before the trial lapses.",road:"Trials end and learners quietly leave. A value reminder plus a clear offer converts the ready ones.",mech:"Trial-ending property enters a journey: progress recap, then an upgrade offer before expiry.",trig:"The trial is nearing its end and the learner is active. The expiry plus engagement is the signal.",head:"Your trial ends soon",body:"{{name}}, you have made real progress in {{course}}. Keep going with full access for {{price}}. Your trial ends {{date}}.",btns:[{t:"Upgrade now",cta:true}],journey:["<b>Mid-trial:</b> progress recap, look how far you have come","<b>2 days before end:</b> upgrade offer with the price","<b>Trial end:</b> final keep-going nudge"]},
+  {emoji:"🏅",v:"Education",title:"Course completion certificate",cat:"Utility",cad:"Automated",free:false,
+   goal:"Deliver the certificate and the sense of achievement.",road:"A certificate stuck in a portal loses its shine. Delivered in chat, it is shareable and proud.",mech:"Completion event sends a utility template with the certificate and a share option.",trig:"The learner just completed the course. Transactional and celebratory.",head:"Your certificate is ready",body:"{{name}}, congratulations on completing {{course}}. Your certificate is attached. Share it with pride.",btns:[{t:"View certificate",cta:true}]},
+  {emoji:"⭐",v:"Education",title:"Feedback survey (Flows)",cat:"Utility",cad:"Automated",free:true,
+   goal:"Improve courses with structured learner feedback.",road:"End-of-course survey emails get ignored. An in-chat form captures more, honest feedback.",mech:"Course-completed event opens a Flows feedback form. Results feed course improvement and testimonials.",trig:"A course or module just ended. Recency makes the feedback specific.",head:"How was the course?",body:"{{name}}, your feedback shapes what we teach next. A quick rating and one comment is all we need.",btns:[{t:"Share feedback",cta:true}]},
+  {emoji:"📺",v:"OTT",title:"New episode for a followed show",cat:"Utility",cad:"Automated",free:false,
+   goal:"Bring viewers back the moment new content drops.",road:"Viewers forget release dates and drift. A drop alert reactivates them instantly.",mech:"Content-release event for a followed show triggers a utility drop alert.",trig:"A new episode of a followed show just released. The drop is the trigger.",head:"New episode out",img:"NOW STREAMING",body:"{{name}}, {{show}} S{{season}}E{{ep}} just dropped. Pick up where you left off.",btns:[{t:"Watch now",cta:true}]},
+  {emoji:"🔄",v:"OTT",title:"Subscription renewal reminder",cat:"Utility",cad:"Journey",free:false,
+   goal:"Prevent involuntary churn from a lapsed subscription.",road:"An expiring card or plan ends the relationship silently. A reminder saves it.",mech:"Renewal-date property triggers a utility reminder with an update-payment CTA.",trig:"The subscription is about to renew or a card is expiring. Date-driven.",head:"Your plan renews soon",body:"{{name}}, your {{plan}} renews on {{date}}. Nothing to do if all is well. Card expiring? Update it here.",btns:[{t:"Manage subscription",cta:true}],journey:["<b>7 days out:</b> your plan renews soon, nothing to do if all is well","<b>2 days out:</b> card expiring? update it here","<b>Renewal day:</b> confirmation, or a fix-payment path"]},
+  {emoji:"🔁",v:"OTT",title:"Payment failed / win-back",cat:"Marketing",cad:"Journey",free:false,
+   goal:"Recover subscribers lost to a failed payment.",road:"A failed charge ends the subscription without the user even choosing to leave. Recoverable.",mech:"Payment-failed event enters a journey: fix-payment reminder, then a small win-back offer.",trig:"A renewal payment just failed. Involuntary churn in progress.",head:"We could not process your payment",body:"{{name}}, your {{plan}} payment did not go through. Update your details to keep watching {{show}} without a break.",btns:[{t:"Update payment",cta:true}],journey:["<b>On failure:</b> we could not process your payment, update details","<b>Day 2:</b> reminder, keep watching without a break","<b>Day 5:</b> small win-back offer before access ends"]},
+  {emoji:"▶️",v:"OTT",title:"Continue-watching nudge",cat:"Marketing",cad:"Recurring",free:false,
+   goal:"Re-hook viewers who stalled mid-series.",road:"An unfinished series is a churn risk. A nudge with the exact next episode pulls them back.",mech:"Dormant-but-mid-series segment receives a personalised continue nudge.",trig:"The viewer paused mid-series and has gone quiet. The unfinished series is the signal.",head:"Still on the edge?",img:"CONTINUE WATCHING",body:"{{name}}, you are {{progress}} through {{show}}. The next one is a big one. Ready to continue?",btns:[{t:"Resume",cta:true}]},
+  {emoji:"👋",v:"OTT",title:"Onboarding welcome + genre opt-in (Flows)",cat:"Marketing",cad:"Journey",free:true,
+   goal:"Personalise from day one and capture messaging opt-in.",road:"New subscribers who never set preferences get generic content and churn. A quick opt-in fixes both.",mech:"Sign-up event opens a Flows form to pick favourite genres and confirm WhatsApp opt-in. Feeds recommendations.",trig:"The user just subscribed. The fresh start is the moment to set preferences.",head:"Welcome, let us tune your feed",body:"Hi {{name}}, welcome. Tell me what you love to watch and I will send you the good stuff, not the noise.",btns:[{t:"Pick my genres",cta:true}],journey:["<b>On signup:</b> welcome, pick genres via Flows, confirm opt-in","<b>Day 1:</b> first personalised recommendation","<b>Day 3:</b> add-to-watchlist nudge","<b>Day 5:</b> re-engage if no watch yet","<b>Day 7:</b> trial value recap, what you have unlocked"]},
+  {emoji:"🎟️",v:"OTT",title:"Free-trial ending conversion",cat:"Marketing",cad:"Journey",free:false,
+   goal:"Convert trialists before the free period lapses.",road:"Trials end and viewers drift. A recap of what they watched plus a clear offer converts the engaged ones.",mech:"Trial-ending property enters a journey: what-you-watched recap, then an upgrade offer before expiry.",trig:"The trial is nearing its end and the viewer is active. Expiry plus engagement is the signal.",head:"Your free trial ends soon",body:"{{name}}, you watched {{hours}} hours this month. Keep it going with full access for {{price}}. Trial ends {{date}}.",btns:[{t:"Keep watching",cta:true}],journey:["<b>3 days before:</b> what-you-watched recap","<b>1 day before:</b> upgrade offer, trial ending","<b>Trial end:</b> last-chance keep-watching CTA"]},
+  {emoji:"⭐",v:"OTT",title:"Year-in-review recap",cat:"Marketing",cad:"One-off",free:false,
+   goal:"Delight and re-engage with a personalised recap.",road:"Users forget how much they love a service. A personal recap reminds them and gets shared.",mech:"Annual batch computes each viewer's stats and sends a shareable recap card with a jump-back-in CTA.",trig:"Year-end or the viewer's signup anniversary. The calendar moment is the hook.",head:"Your year in review",img:"YOUR 2026 RECAP",body:"{{name}}, you watched {{hours}} hours and {{titles}} titles this year. Your top genre was {{genre}}. See your full recap.",btns:[{t:"See my recap",cta:true}]},
+  {emoji:"🤝",v:"OTT",title:"Referral invite",cat:"Marketing",cad:"Recurring",free:false,
+   goal:"Grow subscribers through happy viewers.",road:"Fans would share but never get around to it. A rewarded prompt makes it one tap.",mech:"Engaged-subscriber segment receives a referral template with a shareable link and reward for both sides.",trig:"The viewer just finished a beloved series or hit a milestone. The high moment is the opening.",head:"Share the binge",body:"{{name}}, loving {{show}}? Invite a friend and you both get {{reward}} when they subscribe.",btns:[{t:"Invite a friend",cta:true}]},
+  {emoji:"📲",v:"Telco",title:"Auto-renew top-up confirmation",cat:"Utility",cad:"Automated",free:false,
+   goal:"Confirm the top-up and reassure on connectivity.",road:"Prepaid users fear a silent lapse. A clean confirmation removes the worry.",mech:"Top-up event sends a utility confirmation with new balance and validity.",trig:"An auto-renew top-up just processed. Transactional.",head:"Top-up successful",body:"{{name}}, your {{amount}} top-up is done. Balance {{balance}}, valid till {{validity}}. You are all set.",btns:[{t:"View plan",cta:true}]},
+  {emoji:"📶",v:"Telco",title:"Data usage 80% alert",cat:"Utility",cad:"Automated",free:false,
+   goal:"Prevent bill shock and upsell a data add-on.",road:"Hitting the cap unexpectedly frustrates and overcharges. An early alert offers a choice.",mech:"Usage-threshold property triggers a utility alert with an add-on CTA.",trig:"Data usage crossed 80% of the plan. The threshold is the trigger.",head:"80% of data used",body:"{{name}}, you have used 80% of your {{plan}} data this cycle. Add a booster now to avoid slowing down.",btns:[{t:"Add data",cta:true},{t:"View usage"}]},
+  {emoji:"🧾",v:"Telco",title:"Bill ready / payment due",cat:"Utility",cad:"Recurring",free:false,
+   goal:"Lift on-time payment and reduce collections effort.",road:"Postpaid bills slip minds. A clear reminder with a pay link lifts on-time rates.",mech:"Bill-generated and due-date properties trigger a utility reminder with a pay CTA.",trig:"A bill is ready or a due date is approaching. Cycle-driven.",head:"Your bill is ready",body:"{{name}}, your {{month}} bill of {{amount}} is due {{date}}. Pay in a tap and you are sorted.",btns:[{t:"Pay bill",cta:true}]},
+  {emoji:"🏆",v:"Telco",title:"Loyalty reward available",cat:"Marketing",cad:"Recurring",free:false,
+   goal:"Drive redemption and reinforce the loyalty programme.",road:"Points nobody uses do nothing for retention. A reward nudge activates them.",mech:"Points-balance segment receives a redemption nudge tied to available rewards.",trig:"The member has enough points for a desirable reward. The redeemable balance is the signal.",head:"Free reward waiting",body:"{{name}}, you have {{points}} points, enough for a free {{reward}}. Redeem before it is gone.",btns:[{t:"Redeem now",cta:true}]},
+  {emoji:"🔐",v:"Telco",title:"Account-change OTP",cat:"Authentication",cad:"Automated",free:false,unsupported:true,
+   goal:"Secure sensitive account changes with verification.",road:"Plan changes and SIM swaps are fraud targets. Auth protects the customer.",mech:"Authentication template delivers the code for the action. Note the Malaysia auth-international rate can apply, so confirm the rate.",trig:"A sensitive account change needs verification now. System-driven.",head:"",body:"{{code}} is your code to confirm your {{action}}. Valid for 5 minutes. Never share this code.",btns:[{t:"Copy code",cta:true}]},
+  {emoji:"📲",v:"Telco",title:"Plan-upgrade offer",cat:"Marketing",cad:"Automated",free:false,
+   goal:"Move heavy users to a plan that fits them better.",road:"Users on the wrong plan overpay or throttle, then blame the network. A right-sized offer helps both sides.",mech:"Usage-pattern segment receives a tailored upgrade offer showing the better-fit plan.",trig:"The user consistently exceeds their plan or hits caps. The usage pattern is the signal.",head:"A plan that fits you",body:"{{name}}, you often run out of data before month end. Our {{plan}} gives you more for just {{price}} more. Worth a look?",btns:[{t:"See the plan",cta:true}]},
+  {emoji:"📲",v:"Telco",title:"Click-to-WhatsApp acquisition / port-in",cat:"Marketing",cad:"Automated",free:true,
+   goal:"Capture switchers from ads into a guided port-in chat.",road:"Switching networks feels like a hassle, so people stall. A chat that walks them through it wins the switch.",mech:"Click-to-WhatsApp ad opens chat, a welcome template offers plans and a guided port-in. 72-hour free window applies.",trig:"The user tapped a switch-and-save ad. Intent is live and the window is open.",head:"Thinking of switching?",img:"SWITCH AND SAVE",body:"Hi {{name}}, switching to us is easier than you think and you keep your number. Want to see plans and how port-in works?",btns:[{t:"Show me plans",cta:true}]},
+  {emoji:"🌍",v:"Telco",title:"Roaming activation",cat:"Utility",cad:"Automated",free:false,
+   goal:"Upsell roaming at the moment of travel.",road:"Travellers land abroad and get bill shock or no signal. A pre-trip roaming offer prevents both.",mech:"Travel signal, such as an airport geofence or a flagged trip, triggers a utility roaming offer.",trig:"The user is about to travel or just landed abroad. The trip is the trigger.",head:"Travelling soon?",body:"{{name}}, heading to {{country}}? Activate a roaming pass now so you stay connected the moment you land.",btns:[{t:"Activate roaming",cta:true}]},
+  {emoji:"💘",v:"Social & Dating",title:"New match / message alert",cat:"Utility",cad:"Automated",free:false,
+   goal:"Pull users back for the moment that drives daily use.",road:"A match that goes unseen goes cold. A prompt alert keeps the spark alive. Opt-in matters here.",mech:"Match or message event sends a utility alert, strictly opt-in and privacy-safe, no content shown.",trig:"A new match or message just arrived. The event is the trigger. Respect consent.",head:"You have a new match",body:"{{name}}, someone liked you back. Open the app to say hi before the moment passes.",btns:[{t:"Open app",cta:true}]},
+  {emoji:"📸",v:"Social & Dating",title:"Profile completion nudge",cat:"Marketing",cad:"Journey",free:false,
+   goal:"Improve match quality by completing thin profiles.",road:"Empty profiles get fewer matches, users blame the app and leave. Completion fixes the root cause.",mech:"Incomplete-profile segment enters a short journey nudging one field at a time.",trig:"The profile is missing key fields after signup. The gap predicts churn.",head:"Get 3x more matches",body:"{{name}}, profiles with a photo and a bio get far more attention. Add yours in under a minute.",btns:[{t:"Complete profile",cta:true}],journey:["<b>Day 1:</b> add a photo, profiles with photos get more matches","<b>Day 3:</b> add a bio, one line is enough","<b>Day 5:</b> final nudge on completing for better matches"]},
+  {emoji:"🚀",v:"Social & Dating",title:"Boost / subscription offer",cat:"Marketing",cad:"Recurring",free:false,
+   goal:"Convert active free users to a paid tier.",road:"Free users who are engaged are the best upgrade targets, but only at the right moment.",mech:"High-activity free segment receives a timed boost or premium offer.",trig:"The user is highly active but unconverted, near a peak-usage window. Engagement is the signal.",head:"Stand out tonight",body:"{{name}}, weekends are busy here. Boost your profile now and be seen by more people nearby.",btns:[{t:"Boost me",cta:true},{t:"See premium"}]},
+  {emoji:"🔐",v:"Social & Dating",title:"Safety verification OTP",cat:"Authentication",cad:"Automated",free:false,unsupported:true,
+   goal:"Verify real users and build trust and safety.",road:"Fake profiles poison the experience. Verification protects the community.",mech:"Authentication template delivers the verification code during onboarding or a safety check.",trig:"A verification step is required now. System-driven.",head:"",body:"{{code}} is your verification code. It keeps the community real and safe. Expires in 5 minutes.",btns:[{t:"Copy code",cta:true}]},
+  {emoji:"🔙",v:"Social & Dating",title:"Win-back dormant user",cat:"Marketing",cad:"Journey",free:false,
+   goal:"Reactivate users who have gone quiet.",road:"Dormant users rarely return alone. A what-is-new plus a reason to look brings them back.",mech:"Dormant segment enters a short journey: fresh-activity teaser, then a boost or premium trial.",trig:"The user has been inactive past a churn threshold. The dormancy is the signal.",head:"People are looking for you",body:"{{name}}, there are new people near you since you last checked. Take a look, your next match might be waiting.",btns:[{t:"See who is new",cta:true}],journey:["<b>Step 1:</b> new people near you since you last checked","<b>Step 2:</b> a free boost or premium trial to restart","<b>Step 3:</b> last nudge, then rest the contact"]},
+  {emoji:"🤝",v:"Social & Dating",title:"Referral / invite friends",cat:"Marketing",cad:"Recurring",free:false,
+   goal:"Grow the pool through happy users.",road:"A bigger local pool means better matches, so referrals compound value. Users just need the prompt.",mech:"Engaged segment receives a referral template with a shareable link and a reward such as a free boost.",trig:"The user just had a positive moment such as a great match. The high point is the opening.",head:"Bring your people",body:"{{name}}, the more the merrier. Invite a friend and get a free {{reward}} when they join.",btns:[{t:"Invite friends",cta:true}]},
+  {emoji:"💞",v:"Social & Dating",title:"Likes-waiting teaser",cat:"Marketing",cad:"Recurring",free:false,
+   goal:"Convert curiosity into a premium upgrade.",road:"Knowing someone liked you is the strongest pull there is. A tasteful teaser converts it to an upgrade.",mech:"Users with pending likes receive a teaser template that reveals the count, not the identity, with an upgrade CTA.",trig:"The user has unseen likes waiting. The pending likes are the trigger.",head:"Someone likes you",body:"{{name}}, you have {{count}} people who liked you. See who they are and match instantly with premium.",btns:[{t:"See my likes",cta:true}]},
+  {emoji:"🔥",v:"Gaming",title:"Daily reward / login streak",cat:"Marketing",cad:"Recurring",free:false,
+   goal:"Drive the daily-return habit that anchors retention.",road:"Players drift without a reason to open. A daily reward gives one, and streaks compound it.",mech:"Daily trigger sends a claim-your-reward nudge with an escalating streak bonus.",trig:"The player has not claimed today's reward. The unclaimed streak is the signal.",head:"Your daily reward is ready",img:"DAY 5 BONUS",body:"{{name}}, day {{streak}} bonus unlocked. Claim now before it resets at midnight.",btns:[{t:"Claim reward",cta:true}]},
+  {emoji:"🏆",v:"Gaming",title:"Event / tournament start",cat:"Marketing",cad:"One-off",free:false,
+   goal:"Maximise participation in a live event window.",road:"Events under-fill when players do not know they are live. A timed alert fills the lobby.",mech:"Event-live trigger sends a join nudge to the relevant player segment.",trig:"A tournament or event just went live with a closing window. The live window is the urgency.",head:"Tournament is live",img:"LIMITED EVENT",body:"{{name}}, the {{event}} has started. Top the leaderboard for {{prize}}. Ends {{expiry}}.",btns:[{t:"Join now",cta:true}]},
+  {emoji:"🔙",v:"Gaming",title:"Win-back lapsed player",cat:"Marketing",cad:"Journey",free:false,
+   goal:"Reactivate players who have gone dormant.",road:"Lapsed players rarely return on their own. A what-is-new plus a gift journey gives a reason.",mech:"Dormant segment enters a short journey: what-is-new highlight, then a returning-player reward.",trig:"The player has been inactive past a churn threshold. The dormancy is the signal.",head:"We saved your spot",body:"{{name}}, a lot has changed in {{game}} since you left, new {{feature}} and a welcome-back gift waiting inside.",btns:[{t:"Claim gift",cta:true}],journey:["<b>Step 1:</b> what is new in the game since you left","<b>Step 2:</b> a returning-player gift","<b>Step 3:</b> last-call reward before we rest the contact"]},
+  {emoji:"🧾",v:"Gaming",title:"Purchase receipt (IAP)",cat:"Utility",cad:"Automated",free:false,
+   goal:"Confirm in-app purchases and reduce chargebacks.",road:"Silent purchases spark disputes. A clear receipt builds trust and cuts refunds.",mech:"Purchase event sends a utility receipt with item and amount.",trig:"An in-app purchase just completed. Transactional.",head:"Purchase confirmed",body:"{{name}}, your purchase of {{item}} for {{amount}} is confirmed and added to your account. Enjoy.",btns:[{t:"View in game",cta:true}]},
+  {emoji:"👋",v:"Gaming",title:"Onboarding welcome / opt-in",cat:"Marketing",cad:"Journey",free:true,
+   goal:"Hook new players and capture messaging opt-in early.",road:"Most installs churn in the first days. A warm welcome and a first-goal nudge lift day-1 retention.",mech:"Install or click-to-WhatsApp entry sends a welcome template with a starter reward and opt-in. Ad entries ride the 72-hour free window.",trig:"The player just installed or tapped a game ad. The fresh start is the moment.",head:"Welcome, player",img:"STARTER PACK",body:"Hi {{name}}, welcome to {{game}}. Here is a starter pack to get you going. Want tips and event alerts here?",btns:[{t:"Claim starter pack",cta:true},{t:"No thanks"}],journey:["<b>On install:</b> welcome, starter pack, opt-in for tips","<b>Day 1:</b> first-goal nudge to hit an early win","<b>Day 2:</b> return reward to build the habit"]},
+  {emoji:"🎯",v:"Gaming",title:"Offer / bundle upsell",cat:"Marketing",cad:"Recurring",free:false,
+   goal:"Convert engaged players into spenders at the right moment.",road:"Generic store pushes get ignored. An offer timed to the player's progress converts.",mech:"Progress or behaviour segment receives a tailored bundle offer sized to where they are in the game.",trig:"The player just hit a wall or a milestone where the bundle is genuinely useful. The progress point is the signal.",head:"Level up faster",img:"LIMITED BUNDLE",body:"{{name}}, stuck on {{level}}? This {{bundle}} gives you exactly what you need, {{discount}} off for 24 hours.",btns:[{t:"View bundle",cta:true}]},
+  {emoji:"🔐",v:"Gaming",title:"Account security OTP",cat:"Authentication",cad:"Automated",free:false,unsupported:true,
+   goal:"Protect accounts and in-game value from takeover.",road:"Gaming accounts hold real value and get targeted. Auth protects the player and their spend.",mech:"Authentication template delivers the code for login or a sensitive change.",trig:"A login or account change needs verification now. System-driven.",head:"",body:"{{code}} is your account security code. Valid for 5 minutes. Never share it, even with people claiming to be support.",btns:[{t:"Copy code",cta:true}]},
+  {emoji:"⚔️",v:"Gaming",title:"Guild / clan invite (two-way)",cat:"Utility",cad:"Automated",free:true,
+   goal:"Deepen retention through social belonging.",road:"Solo players churn fastest. A guild invite plugs them into a community that keeps them playing.",mech:"Guild-invite event sends a utility message with accept or decline quick replies. Replies open a free window.",trig:"A player was invited to a guild or clan. The invite is the trigger.",head:"You are invited",body:"{{name}}, {{guild}} wants you on their team for the next {{event}}. Join and play together.",btns:[{t:"Accept invite",cta:true},{t:"Decline"}]}
+
+];
+
+// ---- STATE ----
+let state={vertical:null,category:null,cadence:null,deliver:null,search:"",grouped:true};
+const VERTICAL_ORDER=["E-Commerce","Food & Beverage","On-Demand","Travel & Ticketing","Payments & Fintech","Investment & Banking","Insurance","Education","OTT","Telco","Social & Dating","Gaming"];
+const VEMOJI={"E-Commerce":"\uD83D\uDECD\uFE0F","Food & Beverage":"\uD83C\uDF7D\uFE0F","On-Demand":"\u26A1","Travel & Ticketing":"\u2708\uFE0F","Payments & Fintech":"\uD83D\uDCB3","Investment & Banking":"\uD83C\uDFE6","Insurance":"\uD83D\uDEE1\uFE0F","Education":"\uD83C\uDF93","OTT":"\uD83C\uDFAC","Telco":"\uD83D\uDCF6","Social & Dating":"\uD83D\uDC9E","Gaming":"\uD83C\uDFAE"};
+const VCOLORS={
+  "E-Commerce":"#f5873b","Food & Beverage":"#e84855","On-Demand":"#14b8a6",
+  "Travel & Ticketing":"#3b93f0","Payments & Fintech":"#4caf50","Investment & Banking":"#e8b800",
+  "Insurance":"#6c78f0","Education":"#a855c7","OTT":"#ec4899",
+  "Telco":"#06b6d4","Social & Dating":"#f43f5e","Gaming":"#84cc16"
+};
+const results=document.getElementById('results');
+const resultCount=document.getElementById('resultCount');
+document.getElementById('ucCount').textContent=CASES.length;
+
+// build filter option lists
+function uniq(k){return [...new Set(CASES.map(c=>c[k]))];}
+const FIELDMAP={vertical:'v',category:'cat',cadence:'cad'};
+function buildFilter(containerId,key,values){  const c=document.getElementById(containerId);
+  values.forEach(val=>{
+    const n=CASES.filter(x=>x[FIELDMAP[key]||key]===val).length;
+    const b=document.createElement('button');
+    const dot=(key==='vertical')?'<span class="fdot" style="background:'+(VCOLORS[val]||'#54656f')+'"></span>':'';
+    b.className='opt';b.innerHTML=dot+val+' <span class="count">'+n+'</span>';
+    b.onclick=()=>{state[key]=state[key]===val?null:val;render();syncActive();};
+    b.dataset.key=key;b.dataset.val=val;
+    c.appendChild(b);
+  });
+}
+buildFilter('fVertical','vertical',["E-Commerce","Food & Beverage","On-Demand","Travel & Ticketing","Payments & Fintech","Investment & Banking","Insurance","Education","OTT","Telco","Social & Dating","Gaming"]);
+buildFilter('fCategory','category',["Marketing","Utility","Authentication"]);
+buildFilter('fCadence','cadence',["One-off","Recurring","Automated","Journey"]);
+
+// deliverability filter (computed, built manually)
+(function(){
+  const opts=[["yes","CleverTap-ready"],["caveat","Caveat"],["no","Not via CleverTap"]];
+  const c=document.getElementById('fDeliver');
+  opts.forEach(([val,lbl])=>{
+    const n=CASES.filter(x=>deliverability(x).s===val).length;
+    const b=document.createElement('button');
+    b.className='opt';b.innerHTML=lbl+' <span class="count">'+n+'</span>';
+    b.dataset.key='deliver';b.dataset.val=val;
+    b.onclick=()=>{state.deliver=state.deliver===val?null:val;render();syncActive();};
+    c.appendChild(b);
+  });
+})();
+
+function syncActive(){
+  document.querySelectorAll('.opt').forEach(b=>{
+    b.classList.toggle('active',state[b.dataset.key]===b.dataset.val);
+  });
+}
+
+// map data keys
+function matches(c){
+  if(state.vertical && c.v!==state.vertical)return false;
+  if(state.category && c.cat!==state.category)return false;
+  if(state.cadence && c.cad!==state.cadence)return false;
+  if(state.deliver && deliverability(c).s!==state.deliver)return false;
+  if(state.search){
+    const q=state.search.toLowerCase();
+    if(!(c.title.toLowerCase().includes(q)||c.goal.toLowerCase().includes(q)||c.v.toLowerCase().includes(q)||(c.mech||'').toLowerCase().includes(q)||(c.emoji||'').includes(q)))return false;
+  }
+  return true;
+}
+
+function deliverability(c){
+  if(c.unsupported) return {s:'no',label:'✕ Not via CleverTap',n:'CleverTap does not support Authentication templates. OTP and verification codes over WhatsApp are not deliverable through CleverTap Direct. Shown for completeness only. This would run through a dedicated auth provider, SMS, or a separate BSP, not CleverTap.'};
+  if(c.lto) return {s:'caveat',label:'\u25B3 Caveat',n:'LTO templates are CleverTap Direct only (CleverTap Provider) and Marketing only. They are not available via the Create-Campaign API, so they are built in the dashboard.'};
+  if(/catalog|carousel|product message|product-message/i.test(c.title+' '+c.mech)) return {s:'caveat',label:'\u25B3 Caveat',n:'Carousel is supported on Direct and select BSPs but not via the Create-Campaign API, so it is a dashboard build. Product catalog and interactive-list objects are not supported on the generic CleverTap platform, so this is worth confirming with your provider.'};
+  if(/Flows/.test(c.mech)) return {s:'caveat',label:'\u25B3 Caveat',n:'Needs a provider that supports WhatsApp Flows, worth confirming with your provider. Fallback: a standard Utility template plus a CTA to a hosted form.'};
+  return {s:'yes',label:'\u2713 CleverTap-ready',n:'Standard '+c.cat+' template. Fully supported on CleverTap Direct and Connect. Any two-way reply rides the Conversations feature inside the free service window.'};
+}
+
+function cardEl(c){
+  const idx=CASES.indexOf(c);
+  const d=deliverability(c);
+  const card=document.createElement('div');
+  card.className='card'+(c.unsupported?' blocked':'');
+  card.style.setProperty('--vc',VCOLORS[c.v]||'#54656f');
+  card.innerHTML=`
+      <div class="cardhead">
+        <span class="em">${c.emoji||'\uD83D\uDCAC'}</span>
+        <div><div class="vt">${c.v}</div><h4>${c.title}</h4></div>
+      </div>
+      <div class="goal">${c.goal}</div>
+      <div class="tags">
+        <span class="tag deliver-${d.s}">${d.label}</span>
+        <span class="tag cat-${c.cat}">${c.cat}</span>
+        <span class="tag cad${c.journey?' journeytag':''}">${c.journey?c.journey.length+'-part journey':c.cad}</span>
+        ${c.free?'<span class="tag free">Free-window</span>':''}
+      </div>`;
+  card.onclick=()=>openModal(idx);
+  return card;
+}
+
+function render(){
+  const list=CASES.filter(matches);
+  resultCount.textContent=list.length+' of '+CASES.length+' use cases';
+  results.innerHTML='';
+  if(state.grouped){
+    VERTICAL_ORDER.forEach(v=>{
+      const cs=list.filter(c=>c.v===v);
+      if(!cs.length)return;
+      const sec=document.createElement('div');
+      sec.className='vsection';
+      sec.style.setProperty('--vc',VCOLORS[v]||'#54656f');
+      const head=document.createElement('div');
+      head.className='vhead';
+      head.innerHTML=`<span class="vhead-em">${VEMOJI[v]||'\uD83D\uDCAC'}</span>`+
+        `<div class="vhead-name">${v}</div>`+
+        `<span class="vhead-count">${cs.length} use case${cs.length>1?'s':''}</span>`;
+      sec.appendChild(head);
+      const g=document.createElement('div');g.className='grid';
+      cs.forEach(c=>g.appendChild(cardEl(c)));
+      sec.appendChild(g);
+      results.appendChild(sec);
+    });
+  } else {
+    const g=document.createElement('div');g.className='grid';
+    list.forEach(c=>g.appendChild(cardEl(c)));
+    results.appendChild(g);
+  }
+}
+
+// ---- MODAL / PHONE MOCKUP ----
+const overlay=document.getElementById('overlay');
+const modal=document.getElementById('modal');
+function initial(str){return (str||'B').trim().charAt(0).toUpperCase();}
+function phoneHTML(c){
+  const name=c.brand||'Your Brand';
+  let btns='';
+  if(c.btns&&c.btns.length){
+    btns='<div class="wa-btns">'+c.btns.map(b=>`<div class="wa-btn">${b.cta?'<svg viewBox="0 0 24 24"><path d="M10 6L8.6 7.4 13.2 12l-4.6 4.6L10 18l6-6z"/></svg>':''}${b.t}</div>`).join('')+'</div>';
+  }
+  const img=c.img?`<div class="bimg">${c.img}</div>`:'';
+  const lto=c.lto?'<div class="ltobadge">⏱ LIMITED-TIME OFFER</div>':'';
+  const head=c.head?`<div class="bhead">${c.head}</div>`:'';
+  return `
+  <div class="phone">
+    <div class="wa-top">
+      <span class="wa-back">‹</span>
+      <div class="wa-av">${initial(name)}</div>
+      <div><div class="wa-name">${name}</div><div class="wa-status">business account</div></div>
+    </div>
+    <div class="wa-body">
+      <div class="bubble biz">
+        ${lto}${img}${head}
+        <div>${c.body.replace(/\n/g,'<br>')}</div>
+        <span class="bmeta">${nowTime()} ✓✓</span>
+      </div>
+      ${btns}
+    </div>
+  </div>`;
+}
+function nowTime(){const d=new Date();let h=d.getHours(),m=d.getMinutes();const ap=h>=12?'pm':'am';h=h%12||12;return h+':'+(m<10?'0'+m:m)+' '+ap;}
+
+let CUR=-1;
+function msgText(c){return c.body;}
+function tplText(c){
+  const L=[];
+  const cat=c.cat.charAt(0).toUpperCase()+c.cat.slice(1)+(c.lto?' (LTO)':'');
+  L.push('Category: '+cat);
+  if(c.img) L.push('Media header: '+c.img);
+  if(c.head) L.push('Heading: '+c.head);
+  L.push('Body: '+c.body);
+  if(c.btns&&c.btns.length) L.push('Buttons: '+c.btns.map(b=>b.t).join(' \u00b7 '));
+  L.push('');
+  L.push('(Placeholders like {{name}} are drafts. Map real variables in the CleverTap template builder.)');
+  return L.join('\n');
+}
+function _flash(btn,label){
+  const span=btn.querySelector('.cl'); if(!span) return;
+  const old=span.textContent; btn.classList.add('done'); span.textContent=label;
+  setTimeout(()=>{btn.classList.remove('done'); span.textContent=old;},1600);
+}
+function _copy(text,btn){
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(()=>_flash(btn,'Copied \u2713')).catch(()=>_fallbackCopy(text,btn));
+  } else { _fallbackCopy(text,btn); }
+}
+function _fallbackCopy(text,btn){
+  const ta=document.createElement('textarea'); ta.value=text;
+  ta.style.position='fixed'; ta.style.top='-1000px'; ta.style.opacity='0';
+  document.body.appendChild(ta); ta.focus(); ta.select();
+  try{document.execCommand('copy'); _flash(btn,'Copied \u2713');}catch(e){_flash(btn,'Copy failed');}
+  document.body.removeChild(ta);
+}
+function copyMsg(btn){const c=CASES[CUR]; if(c)_copy(msgText(c),btn);}
+function copyTpl(btn){const c=CASES[CUR]; if(c)_copy(tplText(c),btn);}
+function _esc(s){return (s+"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function bodyVars(c){
+  const seen=[]; const re=/\{\{\s*([^}]+?)\s*\}\}/g; let m;
+  while((m=re.exec(c.body||""))!==null){const t=m[1].trim(); if(t&&!seen.includes(t))seen.push(t);}
+  return seen;
+}
+function ctConfigHTML(c){
+  const sug='<span class="sug">suggested</span>';
+  if(c.unsupported){
+    return '<div class="block ctcfg"><div class="h">Set it up in CleverTap</div>'
+      +'<p>Not buildable via CleverTap Direct. Authentication templates and one-time codes are not deliverable here. Route this through SMS or a dedicated auth provider, and use CleverTap for the marketing and utility touches around it.</p></div>';
+  }
+  let qual,when,msg="Single Message",qnote="";
+  if(c.cad==="Automated"){
+    qual="Live behavior "+sug; when="Triggered by the event, no manual schedule";
+    qnote="Fires on the event in real time. Use <b>External Trigger</b> instead if your own backend calls the CleverTap API to launch it.";
+  } else if(c.cad==="Recurring"){
+    qual="Past behavior / Custom list "+sug; when="Set as Recurring";
+    qnote="Repeats on a schedule against a saved segment.";
+  } else if(c.cad==="Journey"){
+    qual="Entry event or list "+sug; when="Steps run on the journey timeline"; msg="Build as a Journey (multi-step)";
+    qnote="Each step is a message node with its own delay. Entry is usually a list or an event, not a one-off send.";
+  } else {
+    qual="Past behavior / Custom list "+sug; when="Send now or Schedule for later";
+    qnote="One send to a saved segment.";
+  }
+  const rows=[];
+  rows.push(["Start here \u00b7 Qualification", qual]);
+  rows.push(["What \u00b7 Message type", msg]);
+  rows.push(["Compose \u00b7 Template category", c.cat.charAt(0).toUpperCase()+c.cat.slice(1)+(c.lto?" (LTO, Direct only)":"")]);
+  rows.push(["Compose \u00b7 Header", c.img?"Image, 3:2 ratio, under 500KB, jpg/jpeg/png":(c.head?"Text header":"None")]);
+  const vars=bodyVars(c);
+  const varsHTML=vars.length?vars.map((v,i)=>"<code>{{"+(i+1)+"}}</code> = "+_esc(v)).join(" &middot; "):"None (static copy)";
+  rows.push(["Compose \u00b7 Body variables", varsHTML]);
+  if(c.btns&&c.btns.length){
+    const b=c.btns.map(x=>_esc(x.t)+(x.cta?' <span class="btype">CTA</span>':' <span class="btype qr">quick reply</span>')).join(" &middot; ");
+    rows.push(["Compose \u00b7 Buttons", b]);
+  }
+  rows.push(["When", when]);
+  const rowsHTML=rows.map(r=>'<div class="ctrow"><span class="ctk">'+r[0]+'</span><span class="ctv">'+r[1]+'</span></div>').join("");
+  const pre=["The template must be approved in Meta / Business Manager before it shows up here."];
+  if(/Flows/.test(c.mech)) pre.push("WhatsApp Flows needs a provider that supports it. Fallback: a Utility template plus a CTA to a hosted form.");
+  if(/[Cc]arousel/.test(c.mech)) pre.push("Carousel is dashboard-built only, not available via the Create-Campaign API.");
+  if(c.lto) pre.push("LTO is CleverTap Direct only and Marketing only.");
+  if(c.free) pre.push("Any reply opens the free service window, so follow-ups inside 24h cost nothing.");
+  return '<div class="block ctcfg"><div class="h">Set it up in CleverTap</div>'
+    +'<p class="ctsub">Closest-match config, read straight down like the builder. '+sug+' items are a best-fit start, confirm against your project.</p>'
+    +rowsHTML
+    +'<div class="ctqnote">'+qnote+'</div>'
+    +'<div class="ctnote"><b>Before you build:</b> '+pre.join(" ")+'</div>'
+    +'</div>';
+}
+function openModal(idx){
+  CUR=idx;
+  const c=CASES[idx];
+  const d=deliverability(c);
+  let journey='';
+  if(c.journey){
+    journey=`<div class="block"><div class="h">Journey sequence</div><ol class="journeysteps">${c.journey.map(s=>`<li>${s}</li>`).join('')}</ol></div>`;
+  }
+  modal.innerHTML=`
+    <button class="close" onclick="closeModal()">×</button>
+    <div class="mleft">
+      <div class="vt" style="color:${VCOLORS[c.v]||'var(--wa)'}">${c.v}${c.brand?' · '+c.brand:''}</div>
+      <h2><span style="margin-right:9px">${c.emoji||''}</span>${c.title}</h2>
+      <div class="exline">Sample below uses placeholder tokens. Localise before use.</div>
+      <div class="mtags">
+        <span class="tag deliver-${d.s}">${d.label}</span>
+        <span class="tag cat-${c.cat}">${c.cat}</span>
+        <span class="tag cad">${c.cad}</span>
+        ${c.free?'<span class="tag free">Can ride a free window</span>':''}
+      </div>
+      ${d.s==='no'?`<div class="block warn"><div class="h">Not available through CleverTap</div><p>${d.n}</p></div>`:''}
+      ${d.s==='caveat'?`<div class="block caveat"><div class="h">Deliverable, with a caveat</div><p>${d.n}</p></div>`:''}
+      ${d.s==='yes'?`<div class="block ready"><div class="h">Deliverable via CleverTap</div><p>${d.n}</p></div>`:''}
+      <div class="block trigger"><div class="h">Why now · the trigger signal</div><p>${c.trig}</p></div>
+      <div class="block"><div class="h">Goal</div><p>${c.goal}</p></div>
+      <div class="block"><div class="h">The roadblock it solves</div><p>${c.road}</p></div>
+      <div class="block"><div class="h">Mechanics</div><p>${c.mech}</p></div>
+      ${journey}
+      ${ctConfigHTML(c)}
+    </div>
+    <div class="mright">${phoneHTML(c)}<div class="copybar"><button class="copybtn" type="button" onclick="copyMsg(this)"><svg class="cpi" viewBox="0 0 24 24"><path d="M9 9V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-4"/><rect x="3" y="9" width="12" height="12" rx="2"/></svg><span class="cl">Copy message</span></button><button class="copybtn ghost" type="button" onclick="copyTpl(this)"><span class="cl">Copy template</span></button></div><div class="copyhint">Drafts to adapt in CleverTap. Placeholders are not live variables.</div></div>`;
+  overlay.classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeModal(){overlay.classList.remove('open');document.body.style.overflow='';}
+overlay.onclick=e=>{if(e.target===overlay)closeModal();};
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+
+// search
+document.getElementById('search').addEventListener('input',e=>{state.search=e.target.value;render();});
+document.getElementById('clearFilters').onclick=()=>{const g=state.grouped;state={vertical:null,category:null,cadence:null,deliver:null,search:'',grouped:g};document.getElementById('search').value='';render();syncActive();};
+document.getElementById('viewGrouped').onclick=()=>{state.grouped=true;document.getElementById('viewGrouped').classList.add('active');document.getElementById('viewFlat').classList.remove('active');render();};
+document.getElementById('viewFlat').onclick=()=>{state.grouped=false;document.getElementById('viewFlat').classList.add('active');document.getElementById('viewGrouped').classList.remove('active');render();};
+(function(){
+  const ft=document.getElementById('filterToggle'), fp=document.querySelector('.filters');
+  ft.onclick=()=>{const open=fp.classList.toggle('open');ft.setAttribute('aria-expanded',open);ft.classList.toggle('active',open);};
+})();
+
+// tabs
+document.querySelectorAll('#tabs button').forEach(b=>{
+  b.onclick=()=>{
+    document.querySelectorAll('#tabs button').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.tabpane').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    document.getElementById(b.dataset.tab).classList.add('active');
+    window.scrollTo({top:0,behavior:'smooth'});
+  };
+});
+
+render();
+</script>
+</body>
+</html>
