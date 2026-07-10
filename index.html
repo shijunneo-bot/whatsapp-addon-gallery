@@ -359,9 +359,118 @@
     header::before{animation:none;transform:none}
     html.js-motion .card.anim{opacity:1 !important;transform:none !important}
   }
+
+  /* ============ Showcase intro: "Messages, alive" (motion-forge) ============ */
+  body.intro-lock{overflow:hidden}
+  #showcase{position:fixed;inset:0;z-index:200;overflow-y:auto;overflow-x:hidden;color:#eafff4;
+    background:radial-gradient(125% 90% at 50% 6%, #0d221d 0%, #071410 46%, #04100d 100%);
+    -webkit-overflow-scrolling:touch;opacity:1;transition:opacity .8s ease}
+  #showcase.leaving{opacity:0;pointer-events:none}
+  #fx{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;display:block}
+  .sc-inner{position:relative;z-index:2}
+  .sc-brand{position:fixed;top:22px;left:7vw;z-index:4;font-family:var(--display);font-weight:600;font-size:14px;
+    letter-spacing:-.01em;color:#cdeede;opacity:.9}
+  #sc-load{position:fixed;inset:0;z-index:6;display:flex;align-items:center;justify-content:center;background:#04100d;transition:opacity .6s ease}
+  #sc-load.gone{opacity:0;pointer-events:none}
+  .sc-dots{display:flex;gap:9px}
+  .sc-dots i{width:11px;height:11px;border-radius:50%;background:var(--wa);display:block;opacity:.35;animation:scDot 1.1s ease-in-out infinite}
+  .sc-dots i:nth-child(2){animation-delay:.16s}
+  .sc-dots i:nth-child(3){animation-delay:.32s}
+  @keyframes scDot{0%,80%,100%{transform:translateY(0);opacity:.35}40%{transform:translateY(-9px);opacity:1}}
+
+  .sc-hero{position:relative;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;justify-content:center;
+    padding:90px 7vw 120px;max-width:1120px;margin:0 auto}
+  .sc-kick{font-size:12px;letter-spacing:.34em;text-transform:uppercase;color:var(--wa);font-weight:700;margin-bottom:26px;opacity:0;transform:translateY(14px)}
+  .sc-title{font-family:var(--display);font-weight:800;letter-spacing:-.03em;line-height:.98;font-size:clamp(42px,9vw,112px);margin:0}
+  .sc-title .ln{display:block;overflow:hidden;padding-bottom:.04em}
+  .sc-title .ln>span{display:block;transform:translateY(115%)}
+  .sc-title .g{background:linear-gradient(115deg,#25d366,#9af5c1 55%,#25d366);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .sc-promise{font-size:clamp(16px,2.1vw,21px);color:#a7c8ba;max-width:600px;margin:30px 0 0;line-height:1.55;opacity:0;transform:translateY(14px)}
+  .sc-cta{display:flex;gap:12px;align-items:center;margin-top:44px;flex-wrap:wrap;opacity:0;transform:translateY(14px)}
+  .sc-enter{font-family:var(--body);font-weight:700;font-size:15px;color:#04231d;background:var(--wa);border:none;border-radius:999px;
+    padding:15px 30px;cursor:pointer;display:inline-flex;align-items:center;gap:10px;box-shadow:0 12px 34px -10px rgba(37,211,102,.6);
+    transition:transform .2s cubic-bezier(.2,.7,.2,1),box-shadow .2s}
+  .sc-enter:hover{transform:translateY(-2px);box-shadow:0 18px 46px -10px rgba(37,211,102,.78)}
+  .sc-enter svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+  .sc-skip{font-family:var(--body);font-weight:600;font-size:14px;color:#7fa596;background:none;border:none;cursor:pointer;padding:12px 8px;transition:color .2s}
+  .sc-skip:hover{color:#eafff4}
+  .sc-scroll{position:absolute;bottom:26px;left:50%;transform:translateX(-50%);color:#5f8477;font-size:11px;letter-spacing:.2em;
+    text-transform:uppercase;display:flex;flex-direction:column;align-items:center;gap:9px;opacity:0;animation:scFade 1s ease 1.7s forwards}
+  .sc-scroll .ln{width:1px;height:34px;background:linear-gradient(var(--wa),transparent);animation:scDrop 1.8s ease-in-out infinite}
+  @keyframes scFade{to{opacity:.8}}
+  @keyframes scDrop{0%{transform:scaleY(.25);transform-origin:top}50%{transform:scaleY(1);transform-origin:top}50.1%{transform-origin:bottom}100%{transform:scaleY(.25);transform-origin:bottom}}
+
+  #showcase.ready .sc-kick{opacity:1;transform:none;transition:opacity .7s ease .05s,transform .7s ease .05s}
+  #showcase.ready .sc-title .ln>span{transform:none;transition:transform .85s cubic-bezier(.19,.78,.2,1) var(--d,0s)}
+  #showcase.ready .sc-promise{opacity:1;transform:none;transition:opacity .7s ease .48s,transform .7s ease .48s}
+  #showcase.ready .sc-cta{opacity:1;transform:none;transition:opacity .7s ease .6s,transform .7s ease .6s}
+  .sc-title .ln:nth-child(1)>span{--d:.14s}
+  .sc-title .ln:nth-child(2)>span{--d:.23s}
+  .sc-title .ln:nth-child(3)>span{--d:.32s}
+
+  .sc-beat{position:relative;min-height:86vh;display:flex;flex-direction:column;justify-content:center;padding:60px 7vw;max-width:1000px;margin:0 auto}
+  .sc-beat .big{font-family:var(--display);font-weight:800;letter-spacing:-.02em;line-height:1.06;font-size:clamp(30px,5.2vw,60px);margin:0}
+  .sc-beat .big em{font-style:normal;color:var(--wa)}
+  .sc-beat p{color:#a7c8ba;font-size:clamp(15px,1.9vw,19px);max-width:560px;margin:22px 0 0;line-height:1.55}
+  .sc-stats{display:flex;gap:40px;flex-wrap:wrap;margin:0}
+  .sc-stat .n{font-family:var(--display);font-weight:800;font-size:clamp(48px,8vw,92px);color:#eafff4;line-height:1;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+  .sc-stat .l{color:#7fa596;font-size:13px;letter-spacing:.06em;text-transform:uppercase;margin-top:8px}
+  .sc-final{position:relative;min-height:72vh;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;padding:60px 7vw 130px;max-width:1000px;margin:0 auto}
+  .sc-rev{opacity:0;transform:translateY(26px);transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .7s cubic-bezier(.2,.7,.2,1)}
+  .sc-rev.in{opacity:1;transform:none}
+
+  @media(max-width:640px){
+    .sc-brand{left:26px;top:18px}
+    .sc-hero{padding:80px 26px 110px}
+    .sc-beat,.sc-final{padding:52px 26px}
+    .sc-stats{gap:26px}
+  }
+  @media (prefers-reduced-motion: reduce){
+    .sc-dots i{animation:none;opacity:.8}
+    .sc-scroll{animation:none;opacity:.7}
+    .sc-scroll .ln{animation:none}
+  }
 </style>
 </head>
 <body>
+<div id="showcase" role="region" aria-label="Intro">
+  <canvas id="fx" aria-hidden="true"></canvas>
+  <div class="sc-brand">The WhatsApp Add-on Gallery</div>
+  <div id="sc-load"><div class="sc-dots"><i></i><i></i><i></i></div></div>
+  <div class="sc-inner">
+    <section class="sc-hero">
+      <div class="sc-kick">WhatsApp Business Messaging</div>
+      <h1 class="sc-title">
+        <span class="ln"><span>Ninety-five ways</span></span>
+        <span class="ln"><span>to start the</span></span>
+        <span class="ln"><span class="g">conversation.</span></span>
+      </h1>
+      <p class="sc-promise">A living library of WhatsApp use cases for CleverTap. Every pattern carries its deliverability, its economics, and the closest-match setup, ready to build. Twelve verticals, one place to think.</p>
+      <div class="sc-cta">
+        <button class="sc-enter" id="scEnter" type="button">Enter the gallery <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+        <button class="sc-skip" id="scSkip" type="button">Skip intro</button>
+      </div>
+      <div class="sc-scroll" aria-hidden="true"><span>Scroll</span><span class="ln"></span></div>
+    </section>
+    <section class="sc-beat">
+      <h2 class="big sc-rev">Most WhatsApp pitches stall on one question: <em>what do we even send?</em></h2>
+      <p class="sc-rev">This answers it visually. Not a slide. A pattern you can see, filter, and ship.</p>
+    </section>
+    <section class="sc-beat">
+      <div class="sc-stats">
+        <div class="sc-stat sc-rev"><div class="n" data-count="95">0</div><div class="l">Use cases</div></div>
+        <div class="sc-stat sc-rev"><div class="n" data-count="12">0</div><div class="l">Verticals</div></div>
+        <div class="sc-stat sc-rev"><div class="n" data-count="3">0</div><div class="l">Meta categories</div></div>
+      </div>
+      <p class="sc-rev">Each one honest about what CleverTap can deliver, with copy and a closest-match config attached. You browse, you build.</p>
+    </section>
+    <section class="sc-final">
+      <h2 class="big sc-rev" style="margin-bottom:28px">Open the library.</h2>
+      <button class="sc-enter sc-rev" id="scEnter2" type="button">Enter the gallery <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+    </section>
+  </div>
+</div>
+
 
 <header>
   <div class="kicker">WhatsApp Business Messaging · Use-Case Library</div>
@@ -1047,6 +1156,80 @@ render();
     card.style.setProperty('--d', Math.min(i,14)*30 + 'ms');
     card.addEventListener('animationend',()=>{ card.classList.remove('anim'); card.style.removeProperty('--d'); },{once:true});
   });
+})();
+
+
+/* ---- Showcase intro engine: "Messages, alive" ---- */
+(function(){
+  const sc=document.getElementById('showcase'); if(!sc) return;
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const canvas=document.getElementById('fx'), load=document.getElementById('sc-load');
+  const enterBtns=[document.getElementById('scEnter'),document.getElementById('scEnter2')].filter(Boolean);
+  const skip=document.getElementById('scSkip');
+  document.body.classList.add('intro-lock');
+
+  if(location.hash==='#gallery'){ sc.style.display='none'; document.body.classList.remove('intro-lock'); return; }
+
+  const ctx=canvas.getContext('2d');
+  const mobile=matchMedia('(max-width:640px)').matches;
+  const DPR=Math.min(window.devicePixelRatio||1,2), N=mobile?26:72;
+  let W=0,H=0,parts=[],raf=0,running=false,scrollY=0;
+  const mouse={x:-9999,y:-9999,active:false};
+
+  function resize(){ W=canvas.clientWidth; H=canvas.clientHeight; canvas.width=Math.floor(W*DPR); canvas.height=Math.floor(H*DPR); ctx.setTransform(DPR,0,0,DPR,0,0); }
+  function seed(){ parts=[]; for(let i=0;i<N;i++){ const z=Math.random(); parts.push({ x:Math.random()*W, y:Math.random()*H, z, r:6+z*22,
+    vx:(Math.random()-.5)*(.12+z*.28), vy:(Math.random()-.5)*(.12+z*.26)-(.05+z*.12), a:.10+z*.5, hue:145+(Math.random()*18-9) }); } }
+  function rrect(x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+  function draw(p,x,y){
+    const g=ctx.createRadialGradient(x,y,0,x,y,p.r*2.4);
+    g.addColorStop(0,'hsla('+p.hue+',70%,55%,'+p.a+')'); g.addColorStop(1,'hsla('+p.hue+',70%,45%,0)');
+    ctx.fillStyle=g; ctx.beginPath(); ctx.arc(x,y,p.r*2.4,0,7); ctx.fill();
+    if(p.z>.55){ ctx.globalAlpha=Math.min(1,p.a+.12); ctx.fillStyle='hsl('+p.hue+',64%,52%)'; rrect(x-p.r*.7,y-p.r*.5,p.r*1.4,p.r,p.r*.4); ctx.fill(); ctx.globalAlpha=1; }
+  }
+  function frame(){
+    ctx.clearRect(0,0,W,H); ctx.globalCompositeOperation='lighter';
+    const par=scrollY*0.12;
+    for(const p of parts){
+      p.x+=p.vx; p.y+=p.vy;
+      if(mouse.active){ const dx=p.x-mouse.x, dy=p.y-mouse.y, R=150, d2=dx*dx+dy*dy;
+        if(d2<R*R){ const d=Math.sqrt(d2)||1, f=(1-d/R)*(1.1+p.z*2.1); p.x+=dx/d*f; p.y+=dy/d*f; } }
+      if(p.x<-70)p.x=W+70; if(p.x>W+70)p.x=-70; if(p.y<-70)p.y=H+90; if(p.y>H+90)p.y=-70;
+      draw(p,p.x,p.y-par*p.z);
+    }
+    ctx.globalCompositeOperation='source-over';
+    raf=requestAnimationFrame(frame);
+  }
+  function still(){ ctx.clearRect(0,0,W,H); ctx.globalCompositeOperation='lighter'; for(const p of parts) draw(p,p.x,p.y); ctx.globalCompositeOperation='source-over'; }
+  function start(){ if(running)return; running=true; resize(); seed(); reduce?still():frame(); }
+  function stop(){ running=false; cancelAnimationFrame(raf); }
+
+  window.addEventListener('resize',()=>{ if(!running)return; resize(); if(reduce)still(); },{passive:true});
+  if(!mobile){ sc.addEventListener('pointermove',e=>{mouse.x=e.clientX;mouse.y=e.clientY;mouse.active=true;},{passive:true});
+    sc.addEventListener('pointerleave',()=>{mouse.active=false;}); }
+  sc.addEventListener('scroll',()=>{scrollY=sc.scrollTop;},{passive:true});
+
+  function reveal(){ if(load)load.classList.add('gone'); sc.classList.add('ready'); setTimeout(()=>{if(load)load.style.display='none';},650);
+    const e0=enterBtns[0]; if(e0){try{e0.focus({preventScroll:true});}catch(_){}} }
+  start();
+  reduce?reveal():setTimeout(reveal,1150);
+
+  const revs=sc.querySelectorAll('.sc-rev');
+  if(reduce){ revs.forEach(el=>el.classList.add('in')); sc.querySelectorAll('.n[data-count]').forEach(el=>el.textContent=el.dataset.count); }
+  else{
+    const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}}),{root:sc,threshold:.25});
+    revs.forEach(el=>io.observe(el));
+    const cio=new IntersectionObserver(es=>es.forEach(e=>{ if(!e.isIntersecting)return; const el=e.target,target=+el.dataset.count; cio.unobserve(el);
+      const t0=performance.now(),dur=1100; (function tick(t){ const k=Math.min(1,(t-t0)/dur),ea=1-Math.pow(1-k,3); el.textContent=Math.round(target*ea); if(k<1)requestAnimationFrame(tick); })(t0);
+    }),{root:sc,threshold:.6});
+    sc.querySelectorAll('.n[data-count]').forEach(el=>cio.observe(el));
+  }
+
+  function hardDismiss(){ stop(); sc.style.display='none'; document.body.classList.remove('intro-lock'); window.scrollTo(0,0); }
+  function softDismiss(){ if(reduce){return hardDismiss();} stop(); sc.classList.add('leaving'); document.body.classList.remove('intro-lock'); window.scrollTo(0,0);
+    setTimeout(()=>{sc.style.display='none';},820); const inp=document.getElementById('search'); if(inp){try{inp.focus({preventScroll:true});}catch(_){}} }
+  enterBtns.forEach(b=>b.addEventListener('click',softDismiss));
+  if(skip) skip.addEventListener('click',hardDismiss);
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape' && sc.style.display!=='none' && !sc.classList.contains('leaving')) softDismiss(); });
 })();
 </script>
 </body>
