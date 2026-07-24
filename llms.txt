@@ -1,0 +1,184 @@
+# The WhatsApp Add-on Gallery for CleverTap
+
+> A reference library of 100 WhatsApp Business messaging use cases for CleverTap across 12 verticals. Each use case carries its deliverability through CleverTap, its Meta template category, free-window economics, ready-to-copy message copy, and a closest-match CleverTap campaign setup.
+
+Canonical URL: https://shijunneo-bot.github.io/whatsapp-addon-gallery/
+
+## What this resource answers
+
+- What to send on WhatsApp Business for a given industry and moment
+- Which Meta template category applies (Marketing, Utility, Authentication, Service) and what each costs
+- How the 24-hour service window and the 72-hour entry-point window change the cost of a conversation
+- How to configure the matching campaign in CleverTap, step by step in builder order
+- Evidence on WhatsApp channel performance, with sources named
+
+## Key facts
+
+- Meta runs four WhatsApp message categories: Marketing, Utility, Authentication, and Service. Pricing is per delivered message and varies by recipient country and category, effective 1 July 2025.
+- A 24-hour free service window opens whenever a customer messages the business, and it resets with each new inbound message.
+- A 72-hour free entry-point window opens when a customer messages a business from an Ad that Clicks to WhatsApp or a Facebook Page CTA.
+- A Utility template must be non-promotional and either specific to something the user requested or critical to them, such as a terms update, service outage, or fraud alert.
+- Templates must be created and approved in Meta or WhatsApp Business Manager before they can be used in CleverTap.
+- Through CleverTap WhatsApp Direct you send Marketing and Utility templates plus free-form Service replies. Authentication one-time passcodes are routed through a dedicated auth provider or SMS.
+
+## Use cases by vertical
+
+### E-Commerce (8)
+
+- Click-to-WhatsApp welcome + opt-in
+- Abandoned-cart recovery
+- Back-in-stock alert
+- Price-drop on a watched item
+- Order shipped + live tracking
+- Cash-on-delivery confirmation
+- In-chat catalog browse
+- Post-delivery review request
+
+### Food & Beverage (8)
+
+- Click-to-WhatsApp order (catalog)
+- Order confirmation + live track
+- Reorder your usual
+- Loyalty points near expiry
+- Limited-time offer (LTO card)
+- Table reservation (Flows form)
+- Post-meal CSAT (Flows)
+- Win-back lapsed diner
+
+### On-Demand (8)
+
+- Booking confirmation
+- Appointment booking (Flows form)
+- Return / drop-off reminder
+- Two-way provider approval
+- Pass / subscription expiry nudge
+- Last-minute deals
+- Provider en-route / status
+- Post-service rating (Flows)
+
+### Travel & Ticketing (8)
+
+- Booking confirmation + e-ticket
+- Departure reminder + check-in
+- Complete your booking
+- Ancillary upsell (seat / baggage)
+- Gate change / delay alert
+- Post-trip NPS (Flows)
+- Click-to-WhatsApp trip inquiry
+- Fare-drop on a watched route
+
+### Payments & Fintech (8)
+
+- Login / transaction OTP
+- Cashback earned
+- Salary advance available
+- Low balance / top-up nudge
+- Payment receipt
+- Referral invite
+- Request money / bill split (two-way)
+- Statement ready
+
+### Investment & Banking (8)
+
+- Login OTP
+- Transaction alert
+- KYC completion nudge
+- Statement / portfolio ready
+- Onboarding welcome + opt-in
+- Price / market alert (opt-in)
+- Advisor appointment (Flows)
+- Card activation / freeze (two-way)
+
+### Insurance (8)
+
+- Premium renewal reminder
+- Motor / road-tax renewal
+- Claim status update (two-way)
+- Abandoned quote follow-up
+- Lead capture (Flows quote form)
+- Policy document delivery
+- Wellness / benefit check-in
+- Post-claim NPS (Flows)
+
+### Education (8)
+
+- Click-to-WhatsApp enrollment inquiry
+- Class / session reminder
+- Streak / practice nudge
+- Installment payment reminder
+- Re-enrollment / next course
+- Trial-to-paid conversion
+- Course completion certificate
+- Feedback survey (Flows)
+
+### OTT (8)
+
+- New episode for a followed show
+- Subscription renewal reminder
+- Payment failed / win-back
+- Continue-watching nudge
+- Onboarding welcome + genre opt-in (Flows)
+- Free-trial ending conversion
+- Year-in-review recap
+- Referral invite
+
+### Telco (13)
+
+- Auto-renew top-up confirmation
+- Data usage 80% alert
+- Bill ready / payment due
+- Loyalty reward available
+- Account-change OTP
+- Plan-upgrade offer
+- Click-to-WhatsApp acquisition / port-in
+- Roaming activation
+- Device bundle upgrade offer
+- Device trade-in offer
+- Family / multi-line plan offer
+- Content or gaming add-on cross-sell
+- Low-balance top-up reminder
+
+### Social & Dating (7)
+
+- New match / message alert
+- Profile completion nudge
+- Boost / subscription offer
+- Safety verification OTP
+- Win-back dormant user
+- Referral / invite friends
+- Likes-waiting teaser
+
+### Gaming (8)
+
+- Daily reward / login streak
+- Event / tournament start
+- Win-back lapsed player
+- Purchase receipt (IAP)
+- Onboarding welcome / opt-in
+- Offer / bundle upsell
+- Account security OTP
+- Guild / clan invite (two-way)
+
+## The CleverTap gallery suite
+
+- [Rich Push](https://shijunneo-bot.github.io/rich-push-gallery/): Advanced plan
+- [Custom HTML In-App](https://shijunneo-bot.github.io/ct-template-gallery/): Advanced plan
+- [Native Display](https://shijunneo-bot.github.io/ct-native-display-gallery/): Advanced plan
+- [App & Web Inbox](https://shijunneo-bot.github.io/ct-inbox-gallery/): Advanced plan
+- [Webhooks](https://shijunneo-bot.github.io/ct-webhooks-gallery/): Advanced plan
+- [Linked Content](https://shijunneo-bot.github.io/ct-linked-content-gallery/): Advanced plan
+- [Geofence](https://shijunneo-bot.github.io/ct-geofencing-gallery/): Advanced plan
+- [Bulletins](https://shijunneo-bot.github.io/ct-bulletins-gallery/): Advanced plan
+- [Recommendations & Catalog](https://shijunneo-bot.github.io/ct-recommendations-gallery/): Cutting Edge plan
+- [Reminders](https://shijunneo-bot.github.io/ct-reminders-gallery/): Add-on
+- [Promos](https://shijunneo-bot.github.io/ct-promos-gallery/): Add-on
+- [Product Experiences](https://shijunneo-bot.github.io/ct-product-experiences-gallery/): Add-on
+- [AMP Email](https://shijunneo-bot.github.io/amp-email-gallery/): Email add-on
+- [SMS & RCS](https://shijunneo-bot.github.io/ct-sms-field-guide/): SMS add-on
+- [WhatsApp](https://shijunneo-bot.github.io/whatsapp-addon-gallery/): WhatsApp add-on, this gallery
+- [Trust & Security](https://shijunneo-bot.github.io/ct-trust-gallery/): Platform
+- [CleverTap Intelligence](https://shijunneo-bot.github.io/ct-intelligence-gallery/): Platform
+
+## Attribution
+
+Built and maintained by SJ Neo, Enterprise Customer Success Manager at CleverTap (APAC). Channel benchmark figures cited in this resource come from Meta Q1 2025 earnings, Statista, YouGov BrandIndex, Kantar research commissioned by Meta, and Forrester Total Economic Impact studies commissioned by Meta. Those are vendor-commissioned sources and are labelled as such on the page. Rates and availability change, so confirm current figures with Meta or CleverTap before using them in a business case.
